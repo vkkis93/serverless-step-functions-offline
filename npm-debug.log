@@ -1,0 +1,101 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/usr/local/bin/node', '/usr/local/bin/npm', 'publish' ]
+2 info using npm@3.10.10
+3 info using node@v6.10.0
+4 verbose publish [ '.' ]
+5 silly cache add args [ '.', null ]
+6 verbose cache add spec .
+7 silly cache add parsed spec Result {
+7 silly cache add   raw: '.',
+7 silly cache add   scope: null,
+7 silly cache add   escapedName: null,
+7 silly cache add   name: null,
+7 silly cache add   rawSpec: '.',
+7 silly cache add   spec: '/Users/vkkis/pr/serverless-step-functions-offline',
+7 silly cache add   type: 'directory' }
+8 verbose addLocalDirectory /Users/vkkis/.npm/serverless-step-functions-offline/0.0.2/package.tgz not in flight; packing
+9 verbose correctMkdir /Users/vkkis/.npm correctMkdir not in flight; initializing
+10 info lifecycle serverless-step-functions-offline@0.0.2~prepublish: serverless-step-functions-offline@0.0.2
+11 silly lifecycle serverless-step-functions-offline@0.0.2~prepublish: no script for prepublish, continuing
+12 verbose tar pack [ '/Users/vkkis/.npm/serverless-step-functions-offline/0.0.2/package.tgz',
+12 verbose tar pack   '/Users/vkkis/pr/serverless-step-functions-offline' ]
+13 verbose tarball /Users/vkkis/.npm/serverless-step-functions-offline/0.0.2/package.tgz
+14 verbose folder /Users/vkkis/pr/serverless-step-functions-offline
+15 verbose addLocalTarball adding from inside cache /Users/vkkis/.npm/serverless-step-functions-offline/0.0.2/package.tgz
+16 verbose correctMkdir /Users/vkkis/.npm correctMkdir not in flight; initializing
+17 silly cache afterAdd serverless-step-functions-offline@0.0.2
+18 verbose afterAdd /Users/vkkis/.npm/serverless-step-functions-offline/0.0.2/package/package.json not in flight; writing
+19 verbose correctMkdir /Users/vkkis/.npm correctMkdir not in flight; initializing
+20 verbose afterAdd /Users/vkkis/.npm/serverless-step-functions-offline/0.0.2/package/package.json written
+21 silly publish { name: 'serverless-step-functions-offline',
+21 silly publish   version: '0.0.2',
+21 silly publish   description: '# IMPORTANT: This plugin works only with runtime *node.js* and only with callback. With context object does not work',
+21 silly publish   main: 'index.js',
+21 silly publish   scripts: { test: 'echo "Error: no test specified" && exit 1' },
+21 silly publish   author: '',
+21 silly publish   license: 'ISC',
+21 silly publish   dependencies: { bluebird: '^3.5.1', lodash: '^4.17.4', moment: '^2.19.2' },
+21 silly publish   readme: '# serverless-step-offline\n\n# IMPORTANT: This plugin works only with runtime *node.js* and only with callback. With context object does not work\n\n# Install\nusing npm:\n```bash\nnpm install serverless-step-functions-offline --save-dev\n```\nor yarn:\n```bash\nyarn serverless-step-functions-offline\n```\n\n# Setup\nAdd the plugin to your serverless.yml\n```yaml\n# serverless.yml\n\nplugins:\n  - serverless-step-functions-offline\n```\n\nTo verify that the plugin works, run this in your command line:\n```bash\nsls step-functions-offline\n```\n\n# Requirements\nThis plugin works only with [serverless-step-functions](https://github.com/horike37/serverless-step-functions).\nYou must to have installed this plugin and correctly specified statemachine definition using Amazon States Language.\nExample of statemachine definition you can see [here](https://github.com/horike37/serverless-step-functions#setup)\n# Usage\nAfter all steps are done, need to add to section **custom** in serverless.yml the key **stepFunctionsOffline** with properties *stateName*: path to lambda function.\nFor Example\n```sh\nservice: ServerlessStepPlugin\nframeworkVersion: ">=1.13.0 <2.0.0"\nplugins:\n   - serverless-step-functions-offline\n...\n\ncustom:\n  stepFunctionsOffline:\n    FirstLambda: firstLambda/index.handler\n    ...\n    ...\n    SecondLambda: myDir/index.main\n\nstepFunctions:\n  stateMachines:\n    foo:\n      definition:\n        Comment: "An example of the Amazon States Language using wait states"\n        StartAt: FirstLambda\n        States:\n            FirstLambda:\n              Type: Task\n              Resource: arn:aws:lambda:eu-west-1:123456789:function:TheFirstLambda\n              Next: SecondLambda\n            SecondLambda:\n              Type: Task\n              Resource: arn:aws:lambda:eu-west-1:123456789:function:TheSecondLambda\n              End: true\n```\nWhere is *FirstLambda* it\'s name of step in state machine\nThe *firstLambda/index.handler* - it\'s path to lambda\n\n# Run Plugin\n```sh\n sls step-functions-offline --stateMachine={{name}} --event={{path to event file}}\n```\n *name* - name of state machine in section state functions. In example above it\'s **foo**\n *event file* - input values for execution in JSON format (optional)\n\n# What plugin support ?\n| States | Support |\n| ------ | ------ |\n| ***Task*** | At this moment  plugin **does not support fields** *Retry*, *Catch*, *TimeoutSeconds*, *HeartbeatSeconds*\n| ***Wait***  | All following fields: *Seconds*, *SecondsPath*, *Timestamp*, *TimestampPath* |\n| ***Choice*** | All comparison operators except: *And*, *Not*, *Or*|\n| ***Pass*** | * |\n| ***Parallel*** |  Only *Branches*\n\n### Future plans\n - Support context object\n - Support fields *Retry*, *Catch*\n - Support other languages except node.js\n - Improve performance\n - Bug Fixing\n\n\nLicense\n----\n\nMIT\n\n',
+21 silly publish   readmeFilename: 'README.md',
+21 silly publish   _id: 'serverless-step-functions-offline@0.0.2',
+21 silly publish   _shasum: '4709b5f1bfca7d0153b1de06e79c7688fe560ba8',
+21 silly publish   _from: '.' }
+22 verbose getPublishConfig undefined
+23 silly mapToRegistry name serverless-step-functions-offline
+24 silly mapToRegistry using default registry
+25 silly mapToRegistry registry https://registry.npmjs.org/
+26 silly mapToRegistry data Result {
+26 silly mapToRegistry   raw: 'serverless-step-functions-offline',
+26 silly mapToRegistry   scope: null,
+26 silly mapToRegistry   escapedName: 'serverless-step-functions-offline',
+26 silly mapToRegistry   name: 'serverless-step-functions-offline',
+26 silly mapToRegistry   rawSpec: '',
+26 silly mapToRegistry   spec: 'latest',
+26 silly mapToRegistry   type: 'tag' }
+27 silly mapToRegistry uri https://registry.npmjs.org/serverless-step-functions-offline
+28 verbose publish registryBase https://registry.npmjs.org/
+29 silly publish uploading /Users/vkkis/.npm/serverless-step-functions-offline/0.0.2/package.tgz
+30 verbose request uri https://registry.npmjs.org/serverless-step-functions-offline
+31 verbose request sending authorization for write operation
+32 info attempt registry request try #1 at 5:50:44 PM
+33 verbose request using bearer token for auth
+34 verbose request id 8cd33b053e5b4c99
+35 http request PUT https://registry.npmjs.org/serverless-step-functions-offline
+36 http 403 https://registry.npmjs.org/serverless-step-functions-offline
+37 verbose headers { 'content-type': 'application/json',
+37 verbose headers   'cache-control': 'max-age=300',
+37 verbose headers   'content-length': '124',
+37 verbose headers   'accept-ranges': 'bytes',
+37 verbose headers   date: 'Fri, 29 Dec 2017 15:50:47 GMT',
+37 verbose headers   via: '1.1 varnish',
+37 verbose headers   connection: 'keep-alive',
+37 verbose headers   'x-served-by': 'cache-hhn1540-HHN',
+37 verbose headers   'x-cache': 'MISS',
+37 verbose headers   'x-cache-hits': '0',
+37 verbose headers   'x-timer': 'S1514562645.419540,VS0,VE2424',
+37 verbose headers   vary: 'Accept-Encoding, Accept' }
+38 verbose request invalidating /Users/vkkis/.npm/registry.npmjs.org/serverless-step-functions-offline on PUT
+39 error publish Failed PUT 403
+40 verbose stack Error: You cannot publish over the previously published version 0.0.2. Try bumping the version to 1.0.0 : serverless-step-functions-offline
+40 verbose stack     at makeError (/usr/local/lib/node_modules/npm/node_modules/npm-registry-client/lib/request.js:302:12)
+40 verbose stack     at CachingRegistryClient.<anonymous> (/usr/local/lib/node_modules/npm/node_modules/npm-registry-client/lib/request.js:290:14)
+40 verbose stack     at Request._callback (/usr/local/lib/node_modules/npm/node_modules/npm-registry-client/lib/request.js:210:14)
+40 verbose stack     at Request.self.callback (/usr/local/lib/node_modules/npm/node_modules/request/request.js:187:22)
+40 verbose stack     at emitTwo (events.js:106:13)
+40 verbose stack     at Request.emit (events.js:191:7)
+40 verbose stack     at Request.<anonymous> (/usr/local/lib/node_modules/npm/node_modules/request/request.js:1048:10)
+40 verbose stack     at emitOne (events.js:96:13)
+40 verbose stack     at Request.emit (events.js:188:7)
+40 verbose stack     at IncomingMessage.<anonymous> (/usr/local/lib/node_modules/npm/node_modules/request/request.js:969:12)
+41 verbose statusCode 403
+42 verbose pkgid serverless-step-functions-offline
+43 verbose cwd /Users/vkkis/pr/serverless-step-functions-offline
+44 error Darwin 16.4.0
+45 error argv "/usr/local/bin/node" "/usr/local/bin/npm" "publish"
+46 error node v6.10.0
+47 error npm  v3.10.10
+48 error code E403
+49 error You cannot publish over the previously published version 0.0.2. Try bumping the version to 1.0.0 : serverless-step-functions-offline
+50 error If you need help, you may report this error at:
+50 error     <https://github.com/npm/npm/issues>
+51 verbose exit [ 1, true ]
