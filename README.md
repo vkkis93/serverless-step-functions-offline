@@ -1,6 +1,6 @@
 # serverless-step-offline
 
-# IMPORTANT: This plugin works only with runtime *node.js* and only with callback. With context object does not work
+# IMPORTANT: This plugin works only with runtime *node.js* and only with callback.It does not work with context object.
 
 # Install
 using npm:
@@ -28,7 +28,7 @@ sls step-functions-offline
 
 # Requirements
 This plugin works only with [serverless-step-functions](https://github.com/horike37/serverless-step-functions).
-You must to have installed this plugin and correctly specified statemachine definition using Amazon States Language.
+You must have this plugin installed and correctly specified statemachine definition using Amazon States Language.
 Example of statemachine definition you can see [here](https://github.com/horike37/serverless-step-functions#setup)
 # Usage
 After all steps are done, need to add to section **custom** in serverless.yml the key **stepFunctionsOffline** with properties *stateName*: path to lambda function.
@@ -63,7 +63,7 @@ stepFunctions:
               Resource: arn:aws:lambda:eu-west-1:123456789:function:TheSecondLambda
               End: true
 ```
-Where is *FirstLambda* it's name of step in state machine
+Where *FirstLambda* is the name of step in state machine
 The *firstLambda/index.handler* - it's path to lambda
 
 # Run Plugin
@@ -71,9 +71,10 @@ The *firstLambda/index.handler* - it's path to lambda
  sls step-functions-offline --stateMachine={{name}} --event={{path to event file}}
 ```
  *name* - name of state machine in section state functions. In example above it's **foo**
+ 
  *event file* - input values for execution in JSON format (optional)
 
-# What plugin support ?
+# What does plugin support ?
 | States | Support |
 | ------ | ------ |
 | ***Task*** | At this moment  plugin **does not support fields** *Retry*, *Catch*, *TimeoutSeconds*, *HeartbeatSeconds*
