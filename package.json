@@ -1,12 +1,15 @@
 {
   "name": "serverless-step-functions-offline",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "keywords": [
+    "serverless", "step functions", "serverless-step-functions-offline"
+  ],
+  "author": "viktor.kis <vkkis1993@gmail.com>",
   "license": "ISC",
   "dependencies": {
     "bluebird": "^3.5.1",

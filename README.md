@@ -1,6 +1,6 @@
-# serverless-step-offline
-
-# IMPORTANT: This plugin works only with runtime *node.js* and only with callback.It does not work with context object.
+# serverless-step-offline.
+# Currently in beta, but you can play with it.
+# IMPORTANT: This plugin works only with runtime *node.js* and only with callback. It does not work with context object.
 
 # Install
 using npm:
