@@ -1,8 +1,12 @@
 {
   "name": "serverless-step-functions-offline",
-  "version": "0.0.3",
-  "description": "",
+  "version": "0.0.4",
+  "description": "Serverlesss plugin to support step function offline",
   "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:vkkis93/serverless-step-functions-offline.git"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,7 +14,11 @@
     "serverless", "step functions", "serverless-step-functions-offline"
   ],
   "author": "viktor.kis <vkkis1993@gmail.com>",
-  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vkkis93/serverless-step-functions-offline/issues"
+  },
+  "homepage": "https://github.com/vkkis93/serverless-step-functions-offline#readme",
+  "license": "MIT",
   "dependencies": {
     "bluebird": "^3.5.1",
     "lodash": "^4.17.4",
