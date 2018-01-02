@@ -30,7 +30,7 @@ module.exports = {
         const states = this.stateDefinition.States;
         return Promise.resolve()
             .then(() => this._findNextStep(states, states[this.stateDefinition.StartAt], this.stateDefinition.StartAt))
-            .then(() => this._run(steps[0].f(), this.eventFile, 0)) // :TODO instead of {test} take event from somewhere;
+            .then(() => this._run(steps[0].f(), this.eventFile, 0))
             .catch(err => {
                 console.log('OOPS', err.stack);
                 this.cliLog(err);
@@ -84,7 +84,7 @@ module.exports = {
                     }
                     const indexFunction = _.findIndex(steps, (step) => step.name === choice.f.name);
                     if (indexFunction > -1) {
-                        return resolve(this._run(steps[indexFunction].f(), result, indexFunction)); //:TODO TWICE FFF
+                        return resolve(this._run(steps[indexFunction].f(), result, indexFunction));
                     } else {
                         return resolve(this._run(choice.f.f(), result, index));
 
@@ -92,14 +92,13 @@ module.exports = {
                 }
             }
         });
-        if (!existsAnyMatches && typeChoice.defaultFunction) {//-> :TODO run default function if exists
+        if (!existsAnyMatches && typeChoice.defaultFunction) {
             const indexFunction = _.findIndex(steps, (step) => step.name === typeChoice.defaultFunction.name);
             if (indexFunction > -1) {
-                return resolve(this._run(steps[indexFunction].f(), result, indexFunction)); //:TODO TWICE FFF
+                return resolve(this._run(steps[indexFunction].f(), result, indexFunction));
             } else {
-                return resolve(this._run(typeChoice.defaultFunction.f(), result, index)); //:TODO FIX
+                return resolve(this._run(typeChoice.defaultFunction.f(), result, index));
             }
-            // return resolve(this._run(steps[indexFunction].f(), result, indexFunction, steps));
         }
     },
 
