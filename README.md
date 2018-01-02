@@ -90,6 +90,7 @@ The *firstLambda/index.handler* - it's path to lambda
  - Improve performance
  - Bug Fixing
 
+If you have any questions please feel free to contact me: vkkis1993@gmail.com
 
 License
 ----
