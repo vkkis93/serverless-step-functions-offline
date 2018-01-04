@@ -74,6 +74,9 @@ The *firstLambda/index.handler* - it's path to lambda
  
  *event file* - input values for execution in JSON format (optional)
 
+If you want to know where you are (in offline mode or not) you can use env variable  **STEP_IS_OFFLINE**.
+Be default **process.env.STEP_IS_OFFLINE = true**
+
 # What does plugin support ?
 | States | Support |
 | ------ | ------ |
