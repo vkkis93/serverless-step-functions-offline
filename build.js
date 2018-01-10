@@ -5,7 +5,8 @@ const _ = require('lodash');
 const Promise = require('bluebird');
 const enumList = require('./enum');
 let steps;
-
+let contextObject;
+let currentFunctionIndex;
 
 module.exports = {
     findFunctionsPathAndHandler() {
@@ -43,12 +44,13 @@ module.exports = {
         // console.log('steps', steps);
         return new Promise((resolve, reject) => {
             if (!f) return resolve();// end of states
-            f(event, null, (err, result) => {
-                if (err) {
-                    throw `Error in function "${steps[index].name}": ${err}`;
-                }
-                this._runNextStepFunction(result, index + 1, resolve);
-            });
+            currentFunctionIndex = index;
+            f(event, contextObject, contextObject.done);
+            //     if (err) {
+            //         throw `Error in function "${steps[index].name}": ${err}`;
+            //     }
+            //     this._runNextStepFunction(result, index + 1, resolve);
+            // });
         }).catch(err => {
             throw err;
         });
@@ -193,9 +195,9 @@ module.exports = {
         let waitTimer = 0, targetTime, timeDiff;
         const currentTime = moment();
         const waitField = _.omit(currentState, 'Type', 'Next');
-        if (!_.has(waitField, ['Seconds', 'Timestamp', 'TimestampPath', 'SecondsPath'])) {
-            this.cliLog('!!!WAIT STATE!!!!')
-        }
+        // if (!_.has(waitField, ['Seconds', 'Timestamp', 'TimestampPath', 'SecondsPath'])) {
+        //     this.cliLog('!!!WAIT STATE!!!!')
+        // }
         switch (Object.keys(waitField)[0]) {
         case 'Seconds':
             waitTimer = waitField['Seconds'];
@@ -227,4 +229,40 @@ module.exports = {
         }
         return waitTimer;
     },
+
+
+    cb(err, result) {
+        return new Promise((resolve, reject) => {
+            if (err) {
+                throw `Error in function "${steps[currentFunctionIndex].name}": ${err}`;
+            }
+            this._runNextStepFunction(result, currentFunctionIndex + 1, resolve);
+        })
+
+    },
+
+
+    createContextObject() {
+        const cbFunction = this.cb.bind(this);
+        return {
+            /* Methods */
+            cb: cbFunction,
+            done: cbFunction,
+            succeed: (result) => cbFunction(null, result),
+            fail: (err) => cbFunction(err)
+            // getRemainingTimeInMillis: () => endTime - new Date().getTime(),
+            //
+            // /* Properties */
+            // functionName,
+            // memoryLimitInMB:    fun.memorySize,
+            // functionVersion:    `offline_functionVersion_for_${functionName}`,
+            // invokedFunctionArn: `offline_invokedFunctionArn_for_${functionName}`,
+            // awsRequestId:       `offline_awsRequestId_${Math.random().toString(10).slice(2)}`,
+            // logGroupName:       `offline_logGroupName_for_${functionName}`,
+            // logStreamName:      `offline_logStreamName_for_${functionName}`,
+            // identity:           {},
+            // clientContext:      {},
+        };
+
+    }
 };
