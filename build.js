@@ -31,6 +31,7 @@ module.exports = {
         return Promise.resolve()
             .then(() => this._findNextStep(states, states[this.stateDefinition.StartAt], this.stateDefinition.StartAt))
             .then(() => this._run(steps[0].f(), this.eventFile, 0))
+            .then(() => this.cliLog('Serverless step function offline: Finished'))
             .catch(err => {
                 console.log('OOPS', err.stack);
                 this.cliLog(err);
@@ -48,8 +49,6 @@ module.exports = {
                 }
                 this._runNextStepFunction(result, index + 1, resolve);
             });
-        }).then((res) => {
-            console.log('done', res);
         }).catch(err => {
             throw err;
         });
