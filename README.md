@@ -1,19 +1,23 @@
-# serverless-step-offline.
-# Currently in beta, but you can play with it.
-# IMPORTANT: This plugin works only with runtime *node.js* and only with callback. It does not work with context object.
+[![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
+
+# serverless-step-offline
+
+:warning: **Currently in beta** :warning:
+
+# IMPORTANT: This plugin only works with *node.js* runtime and only with callback. It does not work with context object.
 
 # Install
-using npm:
+Using NPM:
 ```bash
 npm install serverless-step-functions-offline --save-dev
 ```
-or yarn:
+or Yarn:
 ```bash
-yarn serverless-step-functions-offline
+yarn add serverless-step-functions-offline --dev
 ```
 
 # Setup
-Add the plugin to your serverless.yml
+Add the plugin to your `serverless.yml`:
 ```yaml
 # serverless.yml
 
@@ -26,25 +30,35 @@ To verify that the plugin works, run this in your command line:
 sls step-functions-offline
 ```
 
+It should rise an error like that:
+
+> Serverless plugin "serverless-step-functions-offline" initialization errored: Please add ENV_VARIABLES to section "custom"
+
 # Requirements
 This plugin works only with [serverless-step-functions](https://github.com/horike37/serverless-step-functions).
+
 You must have this plugin installed and correctly specified statemachine definition using Amazon States Language.
-Example of statemachine definition you can see [here](https://github.com/horike37/serverless-step-functions#setup)
+
+Example of statemachine definition you can see [here](https://github.com/horike37/serverless-step-functions#setup).
+
 # Usage
 After all steps are done, need to add to section **custom** in serverless.yml the key **stepFunctionsOffline** with properties *stateName*: path to lambda function.
-For Example
-```sh
+
+For example:
+
+```yaml
 service: ServerlessStepPlugin
 frameworkVersion: ">=1.13.0 <2.0.0"
 plugins:
    - serverless-step-functions-offline
-...
+
+# ...
 
 custom:
   stepFunctionsOffline:
     FirstLambda: firstLambda/index.handler
-    ...
-    ...
+    # ...
+    # ...
     SecondLambda: myDir/index.main
 
 stepFunctions:
@@ -63,21 +77,24 @@ stepFunctions:
               Resource: arn:aws:lambda:eu-west-1:123456789:function:TheSecondLambda
               End: true
 ```
-Where *FirstLambda* is the name of step in state machine
-The *firstLambda/index.handler* - it's path to lambda
+
+Where:
+- `FirstLambda` is the name of step in state machine
+- `firstLambda/index.handler` is the path to Lambda
 
 # Run Plugin
-```sh
- sls step-functions-offline --stateMachine={{name}} --event={{path to event file}}
+```bash
+sls step-functions-offline --stateMachine={{name}} --event={{path to event file}}
 ```
- *name* - name of state machine in section state functions. In example above it's **foo**
- 
- *event file* - input values for execution in JSON format (optional)
 
-If you want to know where you are (in offline mode or not) you can use env variable  **STEP_IS_OFFLINE**.
-Be default **process.env.STEP_IS_OFFLINE = true**
+- `name`: name of state machine in section state functions. In example above it's `foo`.
+- `event`: input values for execution in JSON format (optional)
 
-# What does plugin support ?
+If you want to know where you are (in offline mode or not) you can use env variable `STEP_IS_OFFLINE`.
+
+By default `process.env.STEP_IS_OFFLINE = true`.
+
+# What does plugin support?
 | States | Support |
 | ------ | ------ |
 | ***Task*** | At this moment  plugin **does not support fields** *Retry*, *Catch*, *TimeoutSeconds*, *HeartbeatSeconds*
@@ -91,12 +108,10 @@ Be default **process.env.STEP_IS_OFFLINE = true**
  - Support fields *Retry*, *Catch*
  - Support other languages except node.js
  - Improve performance
- - Bug Fixing
+ - Fixing bugs
 
-If you have any questions please feel free to contact me: vkkis1993@gmail.com
+If you have any questions, feel free to contact me: vkkis1993@gmail.com
 
-License
-----
+# License
 
 MIT
-

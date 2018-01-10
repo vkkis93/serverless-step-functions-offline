@@ -4,16 +4,16 @@ const _ = require('lodash');
 const fs = require('fs');
 const path = require('path');
 
-class StepFunctionOfflinePlugin {
+class StepFunctionsOfflinePlugin {
     constructor(serverless, options) {
         this.serverless = serverless;
         this.options = options;
         this.stateMachine = this.options.stateMachine || this.options.s;
         this.eventFile = this.options.event || this.options.e;
-        if (!_.has(this.serverless.service, 'custom.stepFunctionOffline')) {
+        if (!_.has(this.serverless.service, 'custom.stepFunctionsOffline')) {
             throw new this.serverless.classes.Error('Please add ENV_VARIABLES to section "custom"');
         }
-        this.variables = this.serverless.service.custom.stepFunctionOffline;
+        this.variables = this.serverless.service.custom.stepFunctionsOffline;
         this.cliLog = this.serverless.cli.log.bind(this.serverless.cli);
         Object.assign(this,
             parse,
@@ -24,7 +24,7 @@ class StepFunctionOfflinePlugin {
                 usage: "Will run your step function locally",
                 lifecycleEvents: [
                     'start',
-                    'isExistsPluginSLSStepFunctions',
+                    'isInstalledPluginSLSStepFunctions',
                     'findFunctionsPathAndHandler',
                     'findState',
                     'loadEventFile',
@@ -109,4 +109,4 @@ class StepFunctionOfflinePlugin {
     }
 }
 
-module.exports = StepFunctionOfflinePlugin;
+module.exports = StepFunctionsOfflinePlugin;
