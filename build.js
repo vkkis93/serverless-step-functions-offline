@@ -6,28 +6,32 @@ const Promise = require('bluebird');
 const enumList = require('./enum');
 let steps;
 
-
 module.exports = {
     findFunctionsPathAndHandler() {
         for (const functionName in this.variables) {
             const functionHandler = this.variables[functionName];
             const {handler, filePath} = this._findFunctionPathAndHandler(functionHandler);
+
             this.variables[functionName] = {handler, filePath};
         }
     },
 
     _findFunctionPathAndHandler(functionHandler) {
-        const [dir, handler] = functionHandler.split('/');
+        const dir = path.dirname(functionHandler)
+        const handler = path.basename(functionHandler)
         const splitHandler = handler.split('.');
         const filePath = `${dir}/${splitHandler[0]}.js`;
         const handlerName = `${splitHandler[1]}`;
-        return {handler: handlerName, filePath};
+
+        return { handler: handlerName, filePath };
     },
 
     buildStepWorkFlow() {
-        this.cliLog('buildStepWorkFlow');
+        this.cliLog('Building StepWorkFlow');
+
         steps = [];
         const states = this.stateDefinition.States;
+
         return Promise.resolve()
             .then(() => this._findNextStep(states, states[this.stateDefinition.StartAt], this.stateDefinition.StartAt))
             .then(() => this._run(steps[0].f(), this.eventFile, 0))
@@ -42,11 +46,16 @@ module.exports = {
     _run(f, event, index) {
         // console.log('steps', steps);
         return new Promise((resolve, reject) => {
-            if (!f) return resolve();// end of states
+            if (!f) {
+                // end of states
+                return resolve();
+            }
+
             f(event, null, (err, result) => {
                 if (err) {
                     throw `Error in function "${steps[index].name}": ${err}`;
                 }
+
                 this._runNextStepFunction(result, index + 1, resolve);
             });
         }).catch(err => {
@@ -55,19 +64,25 @@ module.exports = {
     },
 
     _runNextStepFunction(result, index, resolve) {
-        if (!steps[index]) return resolve();// end of states
-        if (steps[index].choice) { // type: Choice
-            this._runChoice(steps[index], result, resolve, index);
-        } else if (steps[index].waitState) { //type: Wait
-            return resolve(this._run(steps[index].f(result), result, index));
-        } else {
-            return resolve(this._run(steps[index].f(), result, index));
+        if (!steps[index]) {
+            // end of states
+            return resolve();
         }
-    },
 
+        if (steps[index].choice) {
+            // type: Choice
+            this._runChoice(steps[index], result, resolve, index);
+        } else if (steps[index].waitState) {
+            //type: Wait
+            return resolve(this._run(steps[index].f(result), result, index));
+        }
+
+        return resolve(this._run(steps[index].f(), result, index));
+    },
 
     _runChoice(typeChoice, result, resolve, index) {
         let existsAnyMatches = false;
+
         //look through choice and find appropriate
         _.forEach(typeChoice.choice, choice => {
             //check if result from previous function has of value which described in Choice
