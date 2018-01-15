@@ -27,6 +27,8 @@ module.exports = {
 
     buildStepWorkFlow() {
         this.cliLog('buildStepWorkFlow');
+        contextObject = this.createContextObject();
+        console.log('contextObject', contextObject);
         steps = [];
         const states = this.stateDefinition.States;
         return Promise.resolve()
@@ -46,11 +48,6 @@ module.exports = {
             if (!f) return resolve();// end of states
             currentFunctionIndex = index;
             f(event, contextObject, contextObject.done);
-            //     if (err) {
-            //         throw `Error in function "${steps[index].name}": ${err}`;
-            //     }
-            //     this._runNextStepFunction(result, index + 1, resolve);
-            // });
         }).catch(err => {
             throw err;
         });
@@ -106,7 +103,7 @@ module.exports = {
     _findNextStep(allStates, currentState, currentStateName) {
         // it means end of states
         if (!currentState) return Promise.resolve();
-        let nextStateName = currentState.Next;
+        const nextStateName = currentState.Next;
         if (this._switcherByType(allStates, currentState, currentStateName)) {
             steps.push(this._switcherByType(allStates, currentState, currentStateName));
             if (currentState.Type === 'Choice') {
@@ -127,7 +124,6 @@ module.exports = {
                 name: currentStateName,
                 f: () => require(path.join(process.cwd(), this.variables[currentStateName].filePath))[this.variables[currentStateName].handler]
             };
-            // return this.caseTask(allStates, currentState, currentStateName);
             break;
         case 'Parallel': // look through branches and push all of them
             _.forEach(currentState.Branches, (branch) => {
@@ -179,8 +175,8 @@ module.exports = {
                     return (arg1, arg2, cb) => {
                         setTimeout(() => {
                             cb(null, event);
-                        }, waitTimer * 1000)
-                    }
+                        }, waitTimer * 1000);
+                    };
                 }
             };
             break;
@@ -194,10 +190,13 @@ module.exports = {
     _waitState(event, currentState, currentStateName) {
         let waitTimer = 0, targetTime, timeDiff;
         const currentTime = moment();
-        const waitField = _.omit(currentState, 'Type', 'Next');
-        // if (!_.has(waitField, ['Seconds', 'Timestamp', 'TimestampPath', 'SecondsPath'])) {
-        //     this.cliLog('!!!WAIT STATE!!!!')
-        // }
+        const waitListKeys = ['Seconds', 'Timestamp', 'TimestampPath', 'SecondsPath'];
+        const waitField = _.omit(currentState, 'Type', 'Next', 'Result');
+        const waitKey = Object.keys(waitField)[0];
+        if (!waitListKeys.includes(waitKey)) {
+            this.cliLog(`Plugin does not support wait operator "${waitKey}"`);
+            process.exit();
+        }
         switch (Object.keys(waitField)[0]) {
         case 'Seconds':
             waitTimer = waitField['Seconds'];
@@ -230,38 +229,21 @@ module.exports = {
         return waitTimer;
     },
 
-
-    cb(err, result) {
-        return new Promise((resolve, reject) => {
-            if (err) {
-                throw `Error in function "${steps[currentFunctionIndex].name}": ${err}`;
-            }
-            this._runNextStepFunction(result, currentFunctionIndex + 1, resolve);
-        })
-
-    },
-
-
     createContextObject() {
-        const cbFunction = this.cb.bind(this);
+        const cb = (err, result) => {
+            return new Promise((resolve, reject) => {
+                if (err) {
+                    throw `Error in function "${steps[currentFunctionIndex].name}": ${err}`;
+                }
+                this._runNextStepFunction(result, currentFunctionIndex + 1, resolve);
+            })
+        };
+
         return {
-            /* Methods */
-            cb: cbFunction,
-            done: cbFunction,
-            succeed: (result) => cbFunction(null, result),
-            fail: (err) => cbFunction(err)
-            // getRemainingTimeInMillis: () => endTime - new Date().getTime(),
-            //
-            // /* Properties */
-            // functionName,
-            // memoryLimitInMB:    fun.memorySize,
-            // functionVersion:    `offline_functionVersion_for_${functionName}`,
-            // invokedFunctionArn: `offline_invokedFunctionArn_for_${functionName}`,
-            // awsRequestId:       `offline_awsRequestId_${Math.random().toString(10).slice(2)}`,
-            // logGroupName:       `offline_logGroupName_for_${functionName}`,
-            // logStreamName:      `offline_logStreamName_for_${functionName}`,
-            // identity:           {},
-            // clientContext:      {},
+            cb: cb,
+            done: cb,
+            succeed: (result) => cb(null, result),
+            fail: (err) => cb(err)
         };
 
     }

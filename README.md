@@ -1,10 +1,21 @@
 [![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
+[![npm version](https://badge.fury.io/js/serverless-step-functions-offline.svg)](https://badge.fury.io/js/serverless-step-functions-offline)
 
-# serverless-step-offline
+# serverless-step-functions-offline
 
 :warning: **Currently in beta** :warning:
 
 # IMPORTANT: This plugin only works with *node.js* runtime and only with callback. It does not work with context object.
+
+
+## Documentation
+
+- [Install](#install)
+- [Setup](#setup)
+- [Requirements](#requirements)
+- [Usage](#usage)
+- [Run plugin](#run-plugin)
+- [What does plugin support](#what-does-plugin-support)
 
 # Install
 Using NPM:

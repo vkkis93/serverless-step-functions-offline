@@ -1,7 +1,7 @@
+'use strict';
 const parse = require('./parse');
 const build = require('./build');
 const _ = require('lodash');
-const fs = require('fs');
 const path = require('path');
 
 class StepFunctionsOfflinePlugin {
@@ -21,7 +21,7 @@ class StepFunctionsOfflinePlugin {
         );
         this.commands = {
             'step-functions-offline': {
-                usage: "Will run your step function locally",
+                usage: 'Will run your step function locally',
                 lifecycleEvents: [
                     'start',
                     'isInstalledPluginSLSStepFunctions',
@@ -79,7 +79,7 @@ class StepFunctionsOfflinePlugin {
                 return;
             }).catch(err => {
                 throw new this.serverless.classes.Error(err);
-            })
+            });
     }
 
     isInstalledPluginSLSStepFunctions() {
