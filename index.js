@@ -93,7 +93,7 @@ class StepFunctionsOfflinePlugin {
 
     loadEventFile() {
         if (!this.eventFile) {
-          return this.eventFile = {};
+            return this.eventFile = {};
         }
 
         try {

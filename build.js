@@ -19,8 +19,8 @@ module.exports = {
     },
 
     _findFunctionPathAndHandler(functionHandler) {
-        const dir = path.dirname(functionHandler)
-        const handler = path.basename(functionHandler)
+        const dir = path.dirname(functionHandler);
+        const handler = path.basename(functionHandler);
         const splitHandler = handler.split('.');
         const filePath = `${dir}/${splitHandler[0]}.js`;
         const handlerName = `${splitHandler[1]}`;
@@ -134,7 +134,6 @@ module.exports = {
                 name: currentStateName,
                 f: () => require(path.join(process.cwd(), this.variables[currentStateName].filePath))[this.variables[currentStateName].handler]
             };
-            break;
         case 'Parallel': // look through branches and push all of them
             _.forEach(currentState.Branches, (branch) => {
                 this._findNextStep(branch.States, branch.States[branch.StartAt], branch.StartAt);
@@ -173,7 +172,6 @@ module.exports = {
                 choiceConditional.defaultFunction = this._switcherByType(allStates, allStates[currentState.Default], currentState.Default);
             }
             return choiceConditional;
-            break;
         case 'Wait':
             // Wait State
             // works with parameter: seconds, timestamp, timestampPath, secondsPath;
@@ -189,10 +187,8 @@ module.exports = {
                     };
                 }
             };
-            break;
         case 'Pass':
             return;
-            break;
         }
         return;
     },
@@ -219,7 +215,10 @@ module.exports = {
         case 'TimestampPath':
             const timestampPath = waitField['TimestampPath'].split('$.')[1];
             if (!event[timestampPath]) {
-                this.cliLog(`An error occurred while executing the state ${currentStateName}. The TimestampPath parameter does not reference an input value: ${waitField['TimestampPath']}`);
+                this.cliLog(
+                    `An error occurred while executing the state ${currentStateName}. 
+                     The TimestampPath parameter does not reference an input value: ${waitField['TimestampPath']}`
+                );
                 process.exit(1);
             }
             targetTime = moment(event[timestampPath]);
@@ -230,7 +229,10 @@ module.exports = {
             const secondsPath = waitField['SecondsPath'].split('$.')[1];
             const waitSeconds = event[secondsPath];
             if (!waitSeconds) {
-                this.cliLog(`An error occurred while executing the state ${currentStateName}. The TimestampPath parameter does not reference an input value: ${waitField['SecondsPath']}`);
+                this.cliLog(`
+                    An error occurred while executing the state ${currentStateName}. 
+                    The TimestampPath parameter does not reference an input value: ${waitField['SecondsPath']}`
+                );
                 process.exit(1);
             }
             waitTimer = waitSeconds;
@@ -246,7 +248,7 @@ module.exports = {
                     throw `Error in function "${steps[currentFunctionIndex].name}": ${err}`;
                 }
                 this._runNextStepFunction(result, currentFunctionIndex + 1, resolve);
-            })
+            });
         };
 
         return {
