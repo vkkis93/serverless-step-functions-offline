@@ -1,6 +1,6 @@
 {
   "name": "serverless-step-functions-offline",
-  "version": "0.0.6",
+  "version": "1.0.0",
   "description": "Serverlesss plugin to support step function offline",
   "main": "index.js",
   "repository": {
