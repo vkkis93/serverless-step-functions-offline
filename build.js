@@ -23,7 +23,7 @@ module.exports = {
         const filePath = `${dir}/${splitHandler[0]}.js`;
         const handlerName = `${splitHandler[1]}`;
 
-        return { handler: handlerName, filePath };
+        return {handler: handlerName, filePath};
     },
 
     buildStepWorkFlow() {
@@ -75,9 +75,9 @@ module.exports = {
         } else if (steps[index].waitState) {
             //type: Wait
             return resolve(this._run(steps[index].f(result), result, index));
+        } else {
+            return resolve(this._run(steps[index].f(), result, index));
         }
-
-        return resolve(this._run(steps[index].f(), result, index));
     },
 
     _runChoice(typeChoice, result, resolve, index) {
@@ -86,7 +86,7 @@ module.exports = {
         //look through choice and find appropriate
         _.forEach(typeChoice.choice, choice => {
             //check if result from previous function has of value which described in Choice
-            if (!_.isEmpty(result[choice.variable])) {
+            if (!_.isNil(result[choice.variable])) {
                 //check condition
                 const isConditionTrue = choice.checkFunction(result[choice.variable], choice.compareWithValue);
                 if (isConditionTrue) {
