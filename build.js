@@ -5,10 +5,11 @@ const _ = require('lodash');
 const Promise = require('bluebird');
 const enumList = require('./enum');
 let steps;
-let contextObject;
+// let contextObject;
 let currentFunctionIndex;
 
 module.exports = {
+
     findFunctionsPathAndHandler() {
         for (const functionName in this.variables) {
             const functionHandler = this.variables[functionName];
@@ -30,8 +31,8 @@ module.exports = {
 
     buildStepWorkFlow() {
         this.cliLog('Building StepWorkFlow');
-        contextObject = this.createContextObject();
-        console.log('contextObject', contextObject);
+        this.contextObject = this.createContextObject();
+        console.log('contextObject', this.contextObject);
         steps = [];
         const states = this.stateDefinition.States;
 
@@ -51,7 +52,7 @@ module.exports = {
         return new Promise((resolve, reject) => {
             if (!f) return resolve();// end of states
             currentFunctionIndex = index;
-            f(event, contextObject, contextObject.done);
+            f(event, this.contextObject, this.contextObject.done);
         }).catch(err => {
             throw err;
         });
@@ -245,7 +246,7 @@ module.exports = {
         const cb = (err, result) => {
             return new Promise((resolve, reject) => {
                 if (err) {
-                    throw `Error in function "${steps[currentFunctionIndex].name}": ${err}`;
+                    throw `Error in function "${steps[currentFunctionIndex].name}": ${JSON.stringify(err)}`;
                 }
                 this._runNextStepFunction(result, currentFunctionIndex + 1, resolve);
             });

@@ -4,11 +4,6 @@
 
 # serverless-step-functions-offline
 
-:warning: **Currently in beta** :warning:
-
-# IMPORTANT: This plugin only works with *node.js* runtime and only with callback. It does not work with context object.
-
-
 ## Documentation
 
 - [Install](#install)
@@ -116,9 +111,10 @@ By default `process.env.STEP_IS_OFFLINE = true`.
 | ***Parallel*** |  Only *Branches*
 
 ### Future plans
- - Support context object
+ - Support context object :heavy_check_mark:
  - Support fields *Retry*, *Catch*
  - Support other languages except node.js
+ - Add unit tests - to make plugin stable
  - Improve performance
  - Fixing bugs
 
