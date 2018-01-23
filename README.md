@@ -114,9 +114,9 @@ By default `process.env.STEP_IS_OFFLINE = true`.
  - [x] Support context object
  - [x] Improve performance
  - [x] Fixing bugs
- - [] Support fields *Retry*, *Catch*
- - [] Support other languages except node.js
- - [] Add unit tests - to make plugin stable
+ - [ ] Support fields *Retry*, *Catch*
+ - [ ] Support other languages except node.js
+ - [ ] Add unit tests - to make plugin stable
 
 
 If you have any questions, feel free to contact me: vkkis1993@gmail.com
