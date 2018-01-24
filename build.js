@@ -43,8 +43,9 @@ module.exports = {
 
     process(state, stateName, event) {
         const data = this._findStep(state, stateName);
-        console.log('data');
-        if (!data) {return;}
+        if (!data || data instanceof Promise) {
+            return data;
+        }
         if (data && data.choice) {
             return this._runChoice(data, event);
         } else {
@@ -61,7 +62,9 @@ module.exports = {
 
     _findStep(currentState, currentStateName) {
         // it means end of states
-        if (!currentState) {return;}
+        if (!currentState) {
+            return;
+        }
         this.currentState = currentState;
         return this._switcherByType(currentState, currentStateName);
     },
@@ -77,7 +80,6 @@ module.exports = {
     },
 
     _switcherByType(currentState, currentStateName) {
-        console.log('currentState.Type', currentState.Type);
         switch (currentState.Type) {
         case 'Task': // just push task to general array
             return {
