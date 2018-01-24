@@ -6,9 +6,6 @@ checks:
   method-lines:
     config:
       threshold: 100
-  similar-code:
-    config:
-      threshold: 1
   identical-code:
     config:
       threshold: 1
