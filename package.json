@@ -11,6 +11,8 @@
     "lint": "eslint ./**  --ext .js"
   },
   "keywords": [
+    "aws",
+    "lambda",
     "serverless",
     "step functions",
     "serverless-step-functions-offline"

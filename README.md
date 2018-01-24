@@ -1,6 +1,7 @@
 [![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
 [![npm version](https://badge.fury.io/js/serverless-step-functions-offline.svg)](https://badge.fury.io/js/serverless-step-functions-offline)
 [![Known Vulnerabilities](https://snyk.io/test/github/vkkis93/serverless-step-functions-offline/badge.svg?targetFile=package.json)](https://snyk.io/test/github/vkkis93/serverless-step-functions-offline?targetFile=package.json)
+[![Dependency Status](https://david-dm.org/vkkis93/serverless-step-functions-offline.svg)](https://david-dm.org/vkkis93/serverless-step-functions-offline)
 
 # serverless-step-functions-offline
 
@@ -114,9 +115,7 @@ By default `process.env.STEP_IS_OFFLINE = true`.
  - [x] Support context object
  - [x] Improve performance
  - [x] Fixing bugs
- - [x] Make code readable and supportable
  - [ ] Add unit tests - to make plugin stable (next step)
-
  - [ ] Support fields *Retry*, *Catch*
  - [ ] Support other languages except node.js
 

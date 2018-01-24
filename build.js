@@ -46,9 +46,7 @@ module.exports = {
             this.eventForParallelExecution = event;
         }
         const data = this._findStep(state, stateName);
-        if (!data || data instanceof Promise) {
-            return data;
-        }
+        if (!data || data instanceof Promise) {return data;}
         if (data.choice) {
             return this._runChoice(data, event);
         } else {
@@ -58,9 +56,7 @@ module.exports = {
 
     _findStep(currentState, currentStateName) {
         // it means end of states
-        if (!currentState) {
-            return;
-        }
+        if (!currentState) {return;}
         this.currentState = currentState;
         return this._switcherByType(currentState, currentStateName);
     },
@@ -83,12 +79,15 @@ module.exports = {
                 f: () => require(path.join(process.cwd(), this.variables[currentStateName].filePath))[this.variables[currentStateName].handler]
             };
         case 'Parallel': // look through branches and push all of them
+            this.eventParallelResult = [];
             _.forEach(currentState.Branches, (branch) => {
                 this.parallelBranch = branch;
                 return this.process(branch.States[branch.StartAt], branch.StartAt, this.eventForParallelExecution);
             });
+            this.process(this.states[currentState.Next], currentState.Next, this.eventParallelResult);
             delete this.parallelBranch;
-            return this.process(this.states[currentState.Next], currentState.Next);
+            delete this.eventParallelResult;
+            return;
         case 'Choice':
             //push all choices. but need to store information like
             // 1) on which variable need to look: ${variable}
@@ -221,6 +220,7 @@ module.exports = {
                 let state = this.states;
                 if (this.parallelBranch && this.parallelBranch.States) {
                     state = this.parallelBranch.States;
+                    if (!this.currentState.Next) this.eventParallelResult.push(result); //it means the end of execution of branch
                 }
                 this.process(state[this.currentState.Next], this.currentState.Next, result);
             });
