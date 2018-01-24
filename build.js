@@ -62,6 +62,11 @@ module.exports = {
     },
 
 
+
+
+
+    
+
     _run(f, event) {
         return new Promise((resolve, reject) => {
             if (!f) return Promise.resolve();// end of states
@@ -85,7 +90,6 @@ module.exports = {
                 return this.process(branch.States[branch.StartAt], branch.StartAt, this.eventForParallelExecution);
             });
             this.process(this.states[currentState.Next], currentState.Next, this.eventParallelResult);
-            delete this.parallelBranch;
             delete this.parallelBranch;
             delete this.eventParallelResult;
             return;
