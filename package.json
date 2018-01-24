@@ -3,13 +3,38 @@
   "version": "1.0.0-rc.1",
   "description": "Serverlesss plugin to support step function offline",
   "main": "index.js",
+  "author": "viktor.kis <vkkis1993@gmail.com>",
+  "bugs": {
+    "url": "https://github.com/vkkis93/serverless-step-functions-offline/issues"
+  },
+  "homepage": "https://github.com/vkkis93/serverless-step-functions-offline#readme",
   "repository": {
     "type": "git",
     "url": "git@github.com:vkkis93/serverless-step-functions-offline.git"
   },
   "scripts": {
+    "test": "nyc ./node_modules/mocha/bin/mocha ./*.js",
     "lint": "eslint ./**  --ext .js"
   },
+  "dependencies": {
+    "bluebird": "^3.5.1",
+    "lodash": "^4.17.4",
+    "moment": "^2.20.1"
+  },
+  "devDependencies": {
+    "mocha": "^5.0.0",
+    "nyc": "^11.4.1",
+    "pre-commit": "^1.1.3",
+    "sinon": "^4.2.1"
+  },
+  "nyc": {
+    "include": [
+      "./**.js"
+    ]
+  },
+  "pre-commit": [
+    "lint"
+  ],
   "keywords": [
     "aws",
     "lambda",
@@ -17,21 +42,5 @@
     "step functions",
     "serverless-step-functions-offline"
   ],
-  "author": "viktor.kis <vkkis1993@gmail.com>",
-  "bugs": {
-    "url": "https://github.com/vkkis93/serverless-step-functions-offline/issues"
-  },
-  "homepage": "https://github.com/vkkis93/serverless-step-functions-offline#readme",
-  "license": "MIT",
-  "dependencies": {
-    "bluebird": "^3.5.1",
-    "lodash": "^4.17.4",
-    "moment": "^2.20.1"
-  },
-  "devDependencies": {
-    "pre-commit": "^1.1.3"
-  },
-  "pre-commit": [
-    "lint"
-  ]
+  "license": "MIT"
 }
