@@ -8,6 +8,9 @@ checks:
       threshold: 100
 
 plugins:
+  duplication:
+    enabled: true
+    count_threshold: 1
   eslint:
     enabled: true
     channel: "eslint-4"
