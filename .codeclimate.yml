@@ -6,9 +6,6 @@ checks:
   method-lines:
     config:
       threshold: 100
-  identical-code:
-    config:
-      threshold: 3
 plugins:
   duplication:
     enabled: true
