@@ -42,23 +42,19 @@ module.exports = {
     },
 
     process(state, stateName, event) {
+        if (state && state.Type === 'Parallel') {
+            this.eventForParallelExecution = event;
+        }
         const data = this._findStep(state, stateName);
         if (!data || data instanceof Promise) {
             return data;
         }
-        if (data && data.choice) {
+        if (data.choice) {
             return this._runChoice(data, event);
         } else {
             return this._run(data.f(event), event);
         }
     },
-
-    // processParallel(state, stateName, event) {
-    //     const data = this._findStep(state, stateName);
-    //     delete this.state;
-    //     this.parallelState = state;
-    //
-    // },
 
     _findStep(currentState, currentStateName) {
         // it means end of states
@@ -89,10 +85,10 @@ module.exports = {
         case 'Parallel': // look through branches and push all of them
             _.forEach(currentState.Branches, (branch) => {
                 this.parallelBranch = branch;
-                return this.process(branch.States[branch.StartAt], branch.StartAt); //:TODO PROBLEM WITH more than 2 states
+                return this.process(branch.States[branch.StartAt], branch.StartAt, this.eventForParallelExecution);
             });
             delete this.parallelBranch;
-            return this.process(this.states[currentState.Next], currentState.Next); //:TODO NEED TO SEND EVENT TO CHOICE TYPE ????
+            return this.process(this.states[currentState.Next], currentState.Next);
         case 'Choice':
             //push all choices. but need to store information like
             // 1) on which variable need to look: ${variable}
