@@ -42,14 +42,6 @@ module.exports = {
     },
 
     process(state, stateName, event) {
-        if (true) {
-            console.log('test');
-        }
-
-        if (true) {
-            console.log('test');
-        }
-
         if (state && state.Type === 'Parallel') {
             this.eventForParallelExecution = event;
         }
