@@ -2,4 +2,4 @@ plugins:
   eslint:
     enabled: true
     config:
-      config: path/to/.eslintrc
+      config: .eslintrc
