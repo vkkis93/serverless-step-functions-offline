@@ -86,6 +86,7 @@ module.exports = {
             });
             this.process(this.states[currentState.Next], currentState.Next, this.eventParallelResult);
             delete this.parallelBranch;
+            delete this.parallelBranch;
             delete this.eventParallelResult;
             return;
         case 'Choice':
