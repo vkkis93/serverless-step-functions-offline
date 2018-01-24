@@ -61,12 +61,6 @@ module.exports = {
         return this._switcherByType(currentState, currentStateName);
     },
 
-
-
-
-
-    
-
     _run(f, event) {
         return new Promise((resolve, reject) => {
             if (!f) return Promise.resolve();// end of states
