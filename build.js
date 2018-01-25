@@ -7,15 +7,16 @@ const enumList = require('./enum');
 
 module.exports = {
 
-    findFunctionsPathAndHandler() {
-        for (const functionName in this.variables) {
-            const functionHandler = this.variables[functionName];
-            const {handler, filePath} = this._findFunctionPathAndHandler(functionHandler);
-
-            this.variables[functionName] = {handler, filePath};
-        }
-    },
-
+    // findFunctionsPathAndHandler() {
+    //     for (const functionName in this.variables) {
+    //         const functionHandler = this.variables[functionName];
+    //         const {handler, filePath} = this._findFunctionPathAndHandler(functionHandler);
+    //
+    //         this.variables[functionName] = {handler, filePath};
+    //     }
+    //     console.log('this.va', this.variables)
+    // },
+    //
     _findFunctionPathAndHandler(functionHandler) {
         const dir = path.dirname(functionHandler);
         const handler = path.basename(functionHandler);
@@ -74,9 +75,12 @@ module.exports = {
     _switcherByType(currentState, currentStateName) {
         switch (currentState.Type) {
         case 'Task': // just push task to general array
+            let f = this.variables[currentStateName];
+            f = this.functions[f];
+            const {handler, filePath} = this._findFunctionPathAndHandler(f.handler);
             return {
                 name: currentStateName,
-                f: () => require(path.join(process.cwd(), this.variables[currentStateName].filePath))[this.variables[currentStateName].handler]
+                f: () => require(path.join(process.cwd(), filePath))[handler]
             };
         case 'Parallel': // look through branches and push all of them
             this.eventParallelResult = [];

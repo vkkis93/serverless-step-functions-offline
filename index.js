@@ -13,6 +13,7 @@ class StepFunctionsOfflinePlugin {
         if (!_.has(this.serverless.service, 'custom.stepFunctionsOffline')) {
             throw new this.serverless.classes.Error('Please add ENV_VARIABLES to section "custom"');
         }
+        this.functions = this.serverless.service.functions;
         this.variables = this.serverless.service.custom.stepFunctionsOffline;
         this.cliLog = this.serverless.cli.log.bind(this.serverless.cli);
         Object.assign(this,
@@ -49,7 +50,7 @@ class StepFunctionsOfflinePlugin {
             'step-functions-offline:start': this.start.bind(this),
             'step-functions-offline:isInstalledPluginSLSStepFunctions': this.isInstalledPluginSLSStepFunctions.bind(this),
             'step-functions-offline:findState': this.findState.bind(this),
-            'step-functions-offline:findFunctionsPathAndHandler': this.findFunctionsPathAndHandler.bind(this),
+            // 'step-functions-offline:findFunctionsPathAndHandler': this.findFunctionsPathAndHandler.bind(this),
             'step-functions-offline:loadEventFile': this.loadEventFile.bind(this),
             'step-functions-offline:buildStepWorkFlow': this.buildStepWorkFlow.bind(this)
         };
