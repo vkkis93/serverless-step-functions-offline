@@ -1,10 +1,18 @@
 [![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
+[![npm version](https://badge.fury.io/js/serverless-step-functions-offline.svg)](https://badge.fury.io/js/serverless-step-functions-offline)
+[![Known Vulnerabilities](https://snyk.io/test/github/vkkis93/serverless-step-functions-offline/badge.svg?targetFile=package.json)](https://snyk.io/test/github/vkkis93/serverless-step-functions-offline?targetFile=package.json)
+[![Dependency Status](https://david-dm.org/vkkis93/serverless-step-functions-offline.svg)](https://david-dm.org/vkkis93/serverless-step-functions-offline)
 
-# serverless-step-offline
+# serverless-step-functions-offline
 
-:warning: **Currently in beta** :warning:
+## Documentation
 
-# IMPORTANT: This plugin only works with *node.js* runtime and only with callback. It does not work with context object.
+- [Install](#install)
+- [Setup](#setup)
+- [Requirements](#requirements)
+- [Usage](#usage)
+- [Run plugin](#run-plugin)
+- [What does plugin support](#what-does-plugin-support)
 
 # Install
 Using NPM:
@@ -103,12 +111,14 @@ By default `process.env.STEP_IS_OFFLINE = true`.
 | ***Pass*** | * |
 | ***Parallel*** |  Only *Branches*
 
-### Future plans
- - Support context object
- - Support fields *Retry*, *Catch*
- - Support other languages except node.js
- - Improve performance
- - Fixing bugs
+### TODOs
+ - [x] Support context object
+ - [x] Improve performance
+ - [x] Fixing bugs
+ - [ ] Add unit tests - to make plugin stable (next step)
+ - [ ] Support fields *Retry*, *Catch*
+ - [ ] Support other languages except node.js
+
 
 If you have any questions, feel free to contact me: vkkis1993@gmail.com
 

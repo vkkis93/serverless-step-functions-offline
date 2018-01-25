@@ -4,9 +4,9 @@ const moment = require('moment');
 const _ = require('lodash');
 const Promise = require('bluebird');
 const enumList = require('./enum');
-let steps;
 
 module.exports = {
+
     findFunctionsPathAndHandler() {
         for (const functionName in this.variables) {
             const functionHandler = this.variables[functionName];
@@ -17,8 +17,8 @@ module.exports = {
     },
 
     _findFunctionPathAndHandler(functionHandler) {
-        const dir = path.dirname(functionHandler)
-        const handler = path.basename(functionHandler)
+        const dir = path.dirname(functionHandler);
+        const handler = path.basename(functionHandler);
         const splitHandler = handler.split('.');
         const filePath = `${dir}/${splitHandler[0]}.js`;
         const handlerName = `${splitHandler[1]}`;
@@ -28,13 +28,11 @@ module.exports = {
 
     buildStepWorkFlow() {
         this.cliLog('Building StepWorkFlow');
-
-        steps = [];
-        const states = this.stateDefinition.States;
+        this.contextObject = this.createContextObject();
+        this.states = this.stateDefinition.States;
 
         return Promise.resolve()
-            .then(() => this._findNextStep(states, states[this.stateDefinition.StartAt], this.stateDefinition.StartAt))
-            .then(() => this._run(steps[0].f(), this.eventFile, 0))
+            .then(() => this.process(this.states[this.stateDefinition.StartAt], this.stateDefinition.StartAt, this.eventFile))
             .then(() => this.cliLog('Serverless step function offline: Finished'))
             .catch(err => {
                 console.log('OOPS', err.stack);
@@ -43,110 +41,53 @@ module.exports = {
             });
     },
 
-    _run(f, event, index) {
-        // console.log('steps', steps);
+    process(state, stateName, event) {
+        if (state && state.Type === 'Parallel') {
+            this.eventForParallelExecution = event;
+        }
+        const data = this._findStep(state, stateName);
+        if (!data || data instanceof Promise) {return data;}
+        if (data.choice) {
+            return this._runChoice(data, event);
+        } else {
+            return this._run(data.f(event), event);
+        }
+    },
+
+    _findStep(currentState, currentStateName) {
+        // it means end of states
+        if (!currentState) {return;}
+        this.currentState = currentState;
+        return this._switcherByType(currentState, currentStateName);
+    },
+
+
+    _run(f, event) {
         return new Promise((resolve, reject) => {
-            if (!f) {
-                // end of states
-                return resolve();
-            }
-
-            f(event, null, (err, result) => {
-                if (err) {
-                    throw `Error in function "${steps[index].name}": ${err}`;
-                }
-
-                this._runNextStepFunction(result, index + 1, resolve);
-            });
+            if (!f) return Promise.resolve();// end of states
+            f(event, this.contextObject, this.contextObject.done);
         }).catch(err => {
             throw err;
         });
     },
 
-    _runNextStepFunction(result, index, resolve) {
-        if (!steps[index]) {
-            // end of states
-            return resolve();
-        }
-
-        if (steps[index].choice) {
-            // type: Choice
-            this._runChoice(steps[index], result, resolve, index);
-        } else if (steps[index].waitState) {
-            //type: Wait
-            return resolve(this._run(steps[index].f(result), result, index));
-        } else {
-            return resolve(this._run(steps[index].f(), result, index));
-        }
-    },
-
-    _runChoice(typeChoice, result, resolve, index) {
-        let existsAnyMatches = false;
-
-        //look through choice and find appropriate
-        _.forEach(typeChoice.choice, choice => {
-            //check if result from previous function has of value which described in Choice
-            if (!_.isNil(result[choice.variable])) {
-                //check condition
-                const isConditionTrue = choice.checkFunction(result[choice.variable], choice.compareWithValue);
-                if (isConditionTrue) {
-                    existsAnyMatches = true;
-                    // if exists run appropriate function
-                    if (!choice.f) {
-                        console.log('PLEASE LOOK HERE');
-                        // return resolve(this._run(steps[index + 1], result, index + 1));
-                    }
-                    const indexFunction = _.findIndex(steps, (step) => step.name === choice.f.name);
-                    if (indexFunction > -1) {
-                        return resolve(this._run(steps[indexFunction].f(), result, indexFunction));
-                    } else {
-                        return resolve(this._run(choice.f.f(), result, index));
-
-                    }
-                }
-            }
-        });
-        if (!existsAnyMatches && typeChoice.defaultFunction) {
-            const indexFunction = _.findIndex(steps, (step) => step.name === typeChoice.defaultFunction.name);
-            if (indexFunction > -1) {
-                return resolve(this._run(steps[indexFunction].f(), result, indexFunction));
-            } else {
-                return resolve(this._run(typeChoice.defaultFunction.f(), result, index));
-            }
-        }
-    },
-
-    _findNextStep(allStates, currentState, currentStateName) {
-        // it means end of states
-        if (!currentState) return Promise.resolve();
-        let nextStateName = currentState.Next;
-        if (this._switcherByType(allStates, currentState, currentStateName)) {
-            steps.push(this._switcherByType(allStates, currentState, currentStateName));
-            if (currentState.Type === 'Choice') {
-                const stateNames = Object.keys(allStates);
-                var index = stateNames.indexOf(currentStateName);
-                const nextStateName = stateNames[index + 1];
-                return this._findNextStep(allStates, allStates[nextStateName], nextStateName);
-            }
-        }
-        return this._findNextStep(allStates, allStates[nextStateName], nextStateName);
-    },
-
-
-    _switcherByType(allStates, currentState, currentStateName) {
+    _switcherByType(currentState, currentStateName) {
         switch (currentState.Type) {
         case 'Task': // just push task to general array
             return {
                 name: currentStateName,
                 f: () => require(path.join(process.cwd(), this.variables[currentStateName].filePath))[this.variables[currentStateName].handler]
             };
-            // return this.caseTask(allStates, currentState, currentStateName);
-            break;
         case 'Parallel': // look through branches and push all of them
+            this.eventParallelResult = [];
             _.forEach(currentState.Branches, (branch) => {
-                this._findNextStep(branch.States, branch.States[branch.StartAt], branch.StartAt);
+                this.parallelBranch = branch;
+                return this.process(branch.States[branch.StartAt], branch.StartAt, this.eventForParallelExecution);
             });
-            break;
+            this.process(this.states[currentState.Next], currentState.Next, this.eventParallelResult);
+            delete this.parallelBranch;
+            delete this.eventParallelResult;
+            return;
         case 'Choice':
             //push all choices. but need to store information like
             // 1) on which variable need to look: ${variable}
@@ -172,15 +113,14 @@ module.exports = {
                     checkFunction,
                     compareWithValue
                 };
-                choiceObj.f = this._switcherByType(allStates, allStates[choice.Next], choice.Next);
+                choiceObj.choiceFunction = choice.Next;
                 choiceConditional.choice.push(choiceObj);
             });
             // if exists default function - store it
             if (currentState.Default) {
-                choiceConditional.defaultFunction = this._switcherByType(allStates, allStates[currentState.Default], currentState.Default);
+                choiceConditional.defaultFunction = currentState.Default;
             }
             return choiceConditional;
-            break;
         case 'Wait':
             // Wait State
             // works with parameter: seconds, timestamp, timestampPath, secondsPath;
@@ -192,24 +132,46 @@ module.exports = {
                     return (arg1, arg2, cb) => {
                         setTimeout(() => {
                             cb(null, event);
-                        }, waitTimer * 1000)
-                    }
+                        }, waitTimer * 1000);
+                    };
                 }
             };
-            break;
         case 'Pass':
-            return;
-            break;
+            return {f: () => this.cliLog('PASS STATE')};
         }
         return;
+    },
+
+    _runChoice(data, result) {
+        let existsAnyMatches = false;
+
+        //look through choice and find appropriate
+        _.forEach(data.choice, choice => {
+            //check if result from previous function has of value which described in Choice
+            if (!_.isNil(result[choice.variable])) {
+                //check condition
+                const isConditionTrue = choice.checkFunction(result[choice.variable], choice.compareWithValue);
+                if (isConditionTrue) {
+                    existsAnyMatches = true;
+                    return this.process(this.states[choice.choiceFunction], choice.choiceFunction, result);
+                }
+            }
+        });
+        if (!existsAnyMatches && data.defaultFunction) {
+            const fName = data.defaultFunction;
+            return this.process(this.states[fName], fName, result);
+        }
     },
 
     _waitState(event, currentState, currentStateName) {
         let waitTimer = 0, targetTime, timeDiff;
         const currentTime = moment();
-        const waitField = _.omit(currentState, 'Type', 'Next');
-        if (!_.has(waitField, ['Seconds', 'Timestamp', 'TimestampPath', 'SecondsPath'])) {
-            this.cliLog('!!!WAIT STATE!!!!')
+        const waitListKeys = ['Seconds', 'Timestamp', 'TimestampPath', 'SecondsPath'];
+        const waitField = _.omit(currentState, 'Type', 'Next', 'Result');
+        const waitKey = Object.keys(waitField)[0];
+        if (!waitListKeys.includes(waitKey)) {
+            this.cliLog(`Plugin does not support wait operator "${waitKey}"`);
+            process.exit();
         }
         switch (Object.keys(waitField)[0]) {
         case 'Seconds':
@@ -223,7 +185,10 @@ module.exports = {
         case 'TimestampPath':
             const timestampPath = waitField['TimestampPath'].split('$.')[1];
             if (!event[timestampPath]) {
-                this.cliLog(`An error occurred while executing the state ${currentStateName}. The TimestampPath parameter does not reference an input value: ${waitField['TimestampPath']}`);
+                this.cliLog(
+                    `An error occurred while executing the state ${currentStateName}. 
+                     The TimestampPath parameter does not reference an input value: ${waitField['TimestampPath']}`
+                );
                 process.exit(1);
             }
             targetTime = moment(event[timestampPath]);
@@ -234,7 +199,10 @@ module.exports = {
             const secondsPath = waitField['SecondsPath'].split('$.')[1];
             const waitSeconds = event[secondsPath];
             if (!waitSeconds) {
-                this.cliLog(`An error occurred while executing the state ${currentStateName}. The TimestampPath parameter does not reference an input value: ${waitField['SecondsPath']}`);
+                this.cliLog(`
+                    An error occurred while executing the state ${currentStateName}. 
+                    The TimestampPath parameter does not reference an input value: ${waitField['SecondsPath']}`
+                );
                 process.exit(1);
             }
             waitTimer = waitSeconds;
@@ -242,4 +210,28 @@ module.exports = {
         }
         return waitTimer;
     },
+
+    createContextObject() {
+        const cb = (err, result) => {
+            return new Promise((resolve, reject) => {
+                if (err) {
+                    throw `Error in function "${this.currentState.name}": ${JSON.stringify(err)}`; //;TODO NAME
+                }
+                let state = this.states;
+                if (this.parallelBranch && this.parallelBranch.States) {
+                    state = this.parallelBranch.States;
+                    if (!this.currentState.Next) this.eventParallelResult.push(result); //it means the end of execution of branch
+                }
+                this.process(state[this.currentState.Next], this.currentState.Next, result);
+            });
+        };
+
+        return {
+            cb: cb,
+            done: cb,
+            succeed: (result) => cb(null, result),
+            fail: (err) => cb(err)
+        };
+
+    }
 };

@@ -1,0 +1,14 @@
+version: "2"
+checks:
+  method-complexity:
+    config:
+      threshold: 50
+  method-lines:
+    config:
+      threshold: 100
+plugins:
+  eslint:
+    enabled: true
+    channel: "eslint-4"
+    config:
+      config: .eslintrc
