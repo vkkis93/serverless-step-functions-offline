@@ -6,13 +6,11 @@ const path = require('path');
 
 class StepFunctionsOfflinePlugin {
     constructor(serverless, options) {
+        console.log(serverless)
         this.serverless = serverless;
         this.options = options;
         this.stateMachine = this.options.stateMachine || this.options.s;
         this.eventFile = this.options.event || this.options.e;
-        if (!_.has(this.serverless.service, 'custom.stepFunctionsOffline')) {
-            throw new this.serverless.classes.Error('Please add ENV_VARIABLES to section "custom"');
-        }
         this.variables = this.serverless.service.custom.stepFunctionsOffline;
         this.cliLog = this.serverless.cli.log.bind(this.serverless.cli);
         Object.assign(this,
@@ -23,6 +21,7 @@ class StepFunctionsOfflinePlugin {
             'step-functions-offline': {
                 usage: 'Will run your step function locally',
                 lifecycleEvents: [
+                    'checkVariableInYML',
                     'start',
                     'isInstalledPluginSLSStepFunctions',
                     'findFunctionsPathAndHandler',
@@ -46,6 +45,7 @@ class StepFunctionsOfflinePlugin {
         };
 
         this.hooks = {
+            'before:step-functions-offline:start': this.checkVariableInYML.bind(this),
             'step-functions-offline:start': this.start.bind(this),
             'step-functions-offline:isInstalledPluginSLSStepFunctions': this.isInstalledPluginSLSStepFunctions.bind(this),
             'step-functions-offline:findState': this.findState.bind(this),
@@ -56,6 +56,14 @@ class StepFunctionsOfflinePlugin {
     }
 
     // Entry point for the plugin (sls step offline)
+
+    checkVariableInYML() {
+        if (!_.has(this.serverless.service, 'custom.stepFunctionsOffline')) {
+            throw new this.serverless.classes.Error('Please add ENV_VARIABLES to section "custom"');
+        }
+        return;
+    }
+
     start() {
         this.cliLog('Preparing....');
         process.env.STEP_IS_OFFLINE = true;
