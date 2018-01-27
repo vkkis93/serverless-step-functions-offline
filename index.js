@@ -6,6 +6,7 @@ const path = require('path');
 
 class StepFunctionsOfflinePlugin {
     constructor(serverless, options) {
+        this.location = process.cwd();
         this.serverless = serverless;
         this.options = options;
         this.stateMachine = this.options.stateMachine || this.options.s;
@@ -66,6 +67,9 @@ class StepFunctionsOfflinePlugin {
 
     start() {
         this.cliLog('Preparing....');
+        if (this.variables.location) {
+            this.location = path.join(process.cwd(), this.variables.location);
+        }
         process.env.STEP_IS_OFFLINE = true;
         this.location = this.location || process.cwd();
         this._checkVersion();
