@@ -6,7 +6,6 @@ const path = require('path');
 
 class StepFunctionsOfflinePlugin {
     constructor(serverless, options) {
-        console.log(serverless)
         this.serverless = serverless;
         this.options = options;
         this.stateMachine = this.options.stateMachine || this.options.s;
@@ -72,30 +71,17 @@ class StepFunctionsOfflinePlugin {
 
     _checkVersion() {
         const version = this.serverless.version;
-
         if (!version.startsWith('1.')) {
-            this.cliLog(`Serverless step offline requires Serverless v1.x.x but found ${version}`);
-            process.exit(0);
+            throw new this.serverless.classes.Error(`Serverless step offline requires Serverless v1.x.x but found ${version}`);
         }
     }
 
-    findState() {
-        this.cliLog(`Trying to find state "${this.stateMachine}" in serverless.yml`);
-
-        return this.yamlParse()
-            .then((yaml) => {
-                this.stateDefinition = this._findState(yaml, this.stateMachine);
-            }).catch(err => {
-                throw new this.serverless.classes.Error(err);
-            });
-    }
 
     isInstalledPluginSLSStepFunctions() {
         const plugins = this.serverless.service.plugins;
-
         if (plugins.indexOf('serverless-step-functions') < 0) {
-            this.cliLog('Error: Please install plugin "serverless-step-functions". Package does not work without it');
-            process.exit(1);
+            const error = 'Error: Please install plugin "serverless-step-functions". Package does not work without it';
+            throw new this.serverless.classes.Error(error);
         }
     }
 
@@ -103,7 +89,6 @@ class StepFunctionsOfflinePlugin {
         if (!this.eventFile) {
             return this.eventFile = {};
         }
-
         try {
             this.eventFile = require(path.join(process.cwd(), this.eventFile));
         } catch (err) {
@@ -111,10 +96,20 @@ class StepFunctionsOfflinePlugin {
         }
     }
 
+    findState() {
+        this.cliLog(`Trying to find state "${this.stateMachine}" in serverless.yml`);
+        return this.yamlParse()
+            .then((yaml) => {
+                this.stateDefinition = this._findState(yaml, this.stateMachine);
+            }).catch(err => {
+                throw new this.serverless
+                    .classes.Error(err);
+            });
+    }
+
     _findState(yaml, stateMachine) {
         if (!_.has(yaml, 'stepFunctions.stateMachines') || !yaml.stepFunctions.stateMachines[stateMachine]) {
-            this.cliLog(`State Machine "${stateMachine}" does not exist in yaml file`);
-            process.exit(0);
+            throw `State Machine "${stateMachine}" does not exist in yaml file`;
         }
         return yaml.stepFunctions.stateMachines[stateMachine].definition;
     }

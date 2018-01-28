@@ -22,6 +22,7 @@
     "moment": "^2.20.1"
   },
   "devDependencies": {
+    "eslint": "^4.16.0",
     "chai": "^4.1.2",
     "mocha": "^5.0.0",
     "nyc": "^11.4.1",
@@ -35,7 +36,7 @@
     ]
   },
   "pre-commit": [
-//    "lint"
+    "lint"
   ],
   "keywords": [
     "aws",

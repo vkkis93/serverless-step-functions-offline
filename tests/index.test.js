@@ -1,24 +1,32 @@
 'use strict';
 const expect = require('chai').expect;
+const should = require('chai').should;
 const sinon = require('sinon');
-const Promise = require('bluebird');
 const Serverless = require('serverless/lib/Serverless');
-const AwsProvider = require('serverless/lib/plugins/aws/provider/awsProvider');
 const CLI = require('serverless/lib/classes/CLI');
 const StepFunctionsOfflinePlugin = require('../index');
 
 describe('index.js', () => {
 
+    const hooks = {
+        beforeStart: 'before:step-functions-offline:start',
+        start: 'step-functions-offline:start',
+        isInstalledPluginSLSStepFunctions: 'step-functions-offline:isInstalledPluginSLSStepFunctions',
+        findState: 'step-functions-offline:findState',
+        findFunctionsPathAndHandler: 'step-functions-offline:findFunctionsPathAndHandler',
+        loadEventFile: 'step-functions-offline:loadEventFile',
+        buildStepWorkFlow: 'step-functions-offline:buildStepWorkFlow'
+    };
 
-    let sandbox;
+
     const options = {
         stateMachine: 'foo',
         s: 'foo',
         event: null
     };
-    let serverless = new Serverless();
+    const serverless = new Serverless();
     serverless.cli = new CLI();
-    serverless.setProvider('aws', new AwsProvider(serverless));
+    // serverless.setProvider('aws', new AwsProvider(serverless));
     const stepFunctionsOfflinePlugin = new StepFunctionsOfflinePlugin(serverless, options);
 
     beforeEach(() => {
@@ -37,35 +45,102 @@ describe('index.js', () => {
 
     describe('#checkVariableInYML', () => {
         it('should throw error - custom.stepFunctionsOffline does not exist', () => {
-            expect(stepFunctionsOfflinePlugin.hooks['before:step-functions-offline:start']).to.throw(/ENV_VARIABLES/);
+            expect(stepFunctionsOfflinePlugin.hooks[hooks.beforeStart]).to.throw(/ENV_VARIABLES/);
         });
 
         it('should exists custom.stepFunctionsOffline', () => {
             stepFunctionsOfflinePlugin.serverless.service.custom = {
                 stepFunctionsOffline: {Foo: 'bar'}
             };
-            expect(stepFunctionsOfflinePlugin.hooks['before:step-functions-offline:start']).to.not.throw();
+            expect(stepFunctionsOfflinePlugin.hooks[hooks.beforeStart]).to.not.throw();
         });
 
     });
 
     describe('#start', () => {
         it('should run function without error', () => {
-            expect(stepFunctionsOfflinePlugin.hooks['step-functions-offline:start']).to.not.throw();
+            expect(stepFunctionsOfflinePlugin.hooks[hooks.start]).to.not.throw();
         });
 
         it('should throw err - unsupportable serverless version', () => {
             const version = '0.5';
             stepFunctionsOfflinePlugin.serverless.version = version;
             const error = `Serverless step offline requires Serverless v1.x.x but found ${version}`;
-            expect(stepFunctionsOfflinePlugin.hooks['before:step-functions-offline:start']).to.equal(0);
+            expect(stepFunctionsOfflinePlugin.hooks[hooks.start]).to.throw(error);
         });
 
         it('should be acceptable serverless version', () => {
             const version = '1.14';
             stepFunctionsOfflinePlugin.serverless.version = version;
-            expect(stepFunctionsOfflinePlugin.hooks['before:step-functions-offline:start']).to.not.throw();
+            expect(stepFunctionsOfflinePlugin.hooks[hooks.start]).to.not.throw();
         });
 
     });
+
+    describe('#isInstalledPluginSLSStepFunctions', () => {
+        it('should throw err: sls step functions plugin does not installed', () => {
+            const error = 'Error: Please install plugin "serverless-step-functions". Package does not work without it';
+            expect(stepFunctionsOfflinePlugin.hooks[hooks.isInstalledPluginSLSStepFunctions]).to.throw(error);
+        });
+
+        it('should accept it - package exists', () => {
+            stepFunctionsOfflinePlugin.serverless.service.plugins = ['serverless-step-functions'];
+            expect(stepFunctionsOfflinePlugin.hooks[hooks.isInstalledPluginSLSStepFunctions]).to.not.throw();
+        });
+    });
+
+
+    describe('#loadEventFile', () => {
+        it('should return empty object', () => {
+            const result = stepFunctionsOfflinePlugin.hooks[hooks.loadEventFile]();
+            expect(result).to.be.empty;
+            expect(result).to.be.a('object');
+        });
+
+        it('should apply event file ', () => {
+            const SFOP = new StepFunctionsOfflinePlugin(serverless, {e: 'tests/eventFile.json'});
+            const result = SFOP.hooks[hooks.loadEventFile]();
+            expect(SFOP.eventFile).to.own.include({foo: 1, bar: 2});
+        });
+
+        it('should throw error - incorrect path to event file ', () => {
+            const SFOP = new StepFunctionsOfflinePlugin(serverless, {event: '..tests/eventFile.json'});
+            expect(SFOP.hooks[hooks.loadEventFile]).to.throw(/Cannot find module/);
+        });
+    })
+
+    describe('#findState', () => {
+        it('should throw err - serverless.yml not exists', () => {
+            // stepFunctionsOfflinePlugin.serverless.config = process.cwd() + '/serverless.test.yml';
+            expect(stepFunctionsOfflinePlugin.hooks[hooks.findState]).to.throw('Could not find serverless.yml');
+        });
+
+
+        it('should throw error - incorrect path to event file ', () => {
+            const SFOP = new StepFunctionsOfflinePlugin(serverless, {event: '..tests/eventFile.json'});
+            expect(SFOP.hooks[hooks.loadEventFile]).to.throw(/Cannot find module/);
+        });
+
+        it('should throw err - state does not exist', () => {
+            stepFunctionsOfflinePlugin.stateMachine = undefined;
+            const error = 'State Machine undefined does not exist in yaml file';
+            stepFunctionsOfflinePlugin.serverless.config.servicePath = process.cwd() + '/tests';
+            return stepFunctionsOfflinePlugin.hooks[hooks.findState]()
+                .catch(err => expect(err).to.be.an('error'))
+        });
+
+        // it('should parse serverless.yml and find state', () => {
+        //     stepFunctionsOfflinePlugin.stateMachine = 'foo';
+        //     stepFunctionsOfflinePlugin.serverless.config.servicePath = process.cwd() + '/tests';
+        //     return stepFunctionsOfflinePlugin.hooks[hooks.findState]()
+        //         .then(() => {
+        //             cosole.log('cool')
+        //             expect(stepFunctionsOfflinePlugin.stateDefinition).to.have.property('Comment')
+        //         })
+        //         .catch(err => {
+        //             console.log("ERR", err)
+        //             expect(err).to.be.an('undefined')
+        //         })
+        // });
+    })
 });

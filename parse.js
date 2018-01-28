@@ -4,17 +4,12 @@ module.exports = {
     yamlParse() {
         const serverlessPath = this.serverless.config.servicePath;
         if (!serverlessPath) {
-            this.cliLog('Could not find serverless.yml');
-            process.exit(0);
+            throw new this.serverless
+                .classes.Error('Could not find serverless.yml');
         }
         const serverlessYmlPath = path.join(serverlessPath, 'serverless.yml');
         return this.serverless.yamlParser
-            .parse(serverlessYmlPath)
-            .catch(err => {
-                this.cliLog('Could not parse serverless.yml');
-                process.exit(0);
-            });
+            .parse(serverlessYmlPath);
     }
-
 };
 
