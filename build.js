@@ -32,7 +32,6 @@ module.exports = {
 
         return Promise.resolve()
             .then(() => this.process(this.states[this.stateDefinition.StartAt], this.stateDefinition.StartAt, this.eventFile))
-            .then(() => this.cliLog('Serverless step function offline: Finished'))
             .catch(err => {
                 console.log('OOPS', err.stack);
                 this.cliLog(err);
@@ -46,7 +45,10 @@ module.exports = {
         }
         const data = this._findStep(state, stateName);
         if (!data || data instanceof Promise) {
-            return ;
+            if (!state || state.Type !== 'Parallel') {
+                this.cliLog('Serverless step function offline: Finished');
+            }
+            return data;
         }
         if (data.choice) {
             return this._runChoice(data, event);
@@ -66,12 +68,11 @@ module.exports = {
 
 
     _run(f, event) {
-        return new Promise((resolve, reject) => {
-            if (!f) return resolve();// end of states
-            f(event, this.contextObject, this.contextObject.done);
-        }).catch(err => {
-            throw err;
-        });
+        if (!f) {
+            return;
+        }// end of states
+        f(event, this.contextObject, this.contextObject.done);
+
     },
 
     _switcherByType(currentState, currentStateName) {
@@ -140,9 +141,35 @@ module.exports = {
                 }
             };
         case 'Pass':
-            return {f: () => this.cliLog('PASS STATE')};
+            return {
+                f: (event) => {
+                    return (arg1, arg2, cb) => {
+                        this.cliLog('!!! Pass State !!!');
+                        const eventResult = this._passStateFields(currentState, event);
+                        cb(null, eventResult);
+
+                    };
+                }
+            };
         }
         return;
+    },
+
+    _passStateFields(currentState, event) {
+        if (!currentState.ResultPath) {
+            if (!currentState.Result) {
+                return event;
+            }
+            return currentState.Result;
+        } else {
+            const variableName = currentState.ResultPath.split('$.')[1];
+            if (!currentState.Result) {
+                event[variableName] = event;
+                return event;
+            }
+            event[variableName] = currentState.Result;
+            return event;
+        }
     },
 
     _runChoice(data, result) {
