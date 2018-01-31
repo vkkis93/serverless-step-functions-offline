@@ -11,7 +11,6 @@ module.exports = {
         for (const functionName in this.variables) {
             const functionHandler = this.variables[functionName];
             const {handler, filePath} = this._findFunctionPathAndHandler(functionHandler);
-
             this.variables[functionName] = {handler, filePath};
         }
     },
@@ -37,7 +36,7 @@ module.exports = {
             .catch(err => {
                 console.log('OOPS', err.stack);
                 this.cliLog(err);
-                process.exit(1);
+                throw err;
             });
     },
 
@@ -46,7 +45,9 @@ module.exports = {
             this.eventForParallelExecution = event;
         }
         const data = this._findStep(state, stateName);
-        if (!data || data instanceof Promise) {return data;}
+        if (!data || data instanceof Promise) {
+            return ;
+        }
         if (data.choice) {
             return this._runChoice(data, event);
         } else {
@@ -56,7 +57,9 @@ module.exports = {
 
     _findStep(currentState, currentStateName) {
         // it means end of states
-        if (!currentState) {return;}
+        if (!currentState) {
+            return;
+        }
         this.currentState = currentState;
         return this._switcherByType(currentState, currentStateName);
     },
@@ -64,7 +67,7 @@ module.exports = {
 
     _run(f, event) {
         return new Promise((resolve, reject) => {
-            if (!f) return Promise.resolve();// end of states
+            if (!f) return resolve();// end of states
             f(event, this.contextObject, this.contextObject.done);
         }).catch(err => {
             throw err;
@@ -213,17 +216,18 @@ module.exports = {
 
     createContextObject() {
         const cb = (err, result) => {
-            return new Promise((resolve, reject) => {
-                if (err) {
-                    throw `Error in function "${this.currentState.name}": ${JSON.stringify(err)}`; //;TODO NAME
-                }
-                let state = this.states;
-                if (this.parallelBranch && this.parallelBranch.States) {
-                    state = this.parallelBranch.States;
-                    if (!this.currentState.Next) this.eventParallelResult.push(result); //it means the end of execution of branch
-                }
-                this.process(state[this.currentState.Next], this.currentState.Next, result);
-            });
+            // return new Promise((resolve, reject) => {
+            if (err) {
+                throw `Error in function "${this.currentState.name}": ${JSON.stringify(err)}`; //;TODO NAME
+            }
+            let state = this.states;
+            if (this.parallelBranch && this.parallelBranch.States) {
+                state = this.parallelBranch.States;
+                if (!this.currentState.Next) this.eventParallelResult.push(result); //it means the end of execution of branch
+            }
+            this.process(state[this.currentState.Next], this.currentState.Next, result);
+            // return resolve();
+            // });
         };
 
         return {

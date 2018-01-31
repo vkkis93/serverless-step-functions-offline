@@ -7,8 +7,7 @@ const CLI = require('serverless/lib/classes/CLI');
 const StepFunctionsOfflinePlugin = require('../index');
 
 describe('index.js', () => {
-
-    const hooks = {
+    global.hooks = {
         beforeStart: 'before:step-functions-offline:start',
         start: 'step-functions-offline:start',
         isInstalledPluginSLSStepFunctions: 'step-functions-offline:isInstalledPluginSLSStepFunctions',
@@ -18,7 +17,6 @@ describe('index.js', () => {
         buildStepWorkFlow: 'step-functions-offline:buildStepWorkFlow'
     };
 
-
     const options = {
         stateMachine: 'foo',
         s: 'foo',
@@ -27,7 +25,7 @@ describe('index.js', () => {
     const serverless = new Serverless();
     serverless.cli = new CLI();
     // serverless.setProvider('aws', new AwsProvider(serverless));
-    const stepFunctionsOfflinePlugin = new StepFunctionsOfflinePlugin(serverless, options);
+    global.stepFunctionsOfflinePlugin = new StepFunctionsOfflinePlugin(serverless, options);
 
     beforeEach(() => {
 
@@ -50,7 +48,7 @@ describe('index.js', () => {
 
         it('should exists custom.stepFunctionsOffline', () => {
             stepFunctionsOfflinePlugin.serverless.service.custom = {
-                stepFunctionsOffline: {Foo: 'bar'}
+                stepFunctionsOffline: {FirstLambda: 'firstLamda/index.handler'}
             };
             expect(stepFunctionsOfflinePlugin.hooks[hooks.beforeStart]).to.not.throw();
         });
@@ -120,27 +118,25 @@ describe('index.js', () => {
             const SFOP = new StepFunctionsOfflinePlugin(serverless, {event: '..tests/eventFile.json'});
             expect(SFOP.hooks[hooks.loadEventFile]).to.throw(/Cannot find module/);
         });
-
-        it('should throw err - state does not exist', () => {
-            stepFunctionsOfflinePlugin.stateMachine = undefined;
-            const error = 'State Machine undefined does not exist in yaml file';
-            stepFunctionsOfflinePlugin.serverless.config.servicePath = process.cwd() + '/tests';
-            return stepFunctionsOfflinePlugin.hooks[hooks.findState]()
-                .catch(err => expect(err).to.be.an('error'))
-        });
-
-        // it('should parse serverless.yml and find state', () => {
-        //     stepFunctionsOfflinePlugin.stateMachine = 'foo';
+        //
+        // it('should throw err - state does not exist', () => {
+        //     stepFunctionsOfflinePlugin.stateMachine = undefined;
+        //     const error = 'State Machine undefined does not exist in yaml file';
         //     stepFunctionsOfflinePlugin.serverless.config.servicePath = process.cwd() + '/tests';
         //     return stepFunctionsOfflinePlugin.hooks[hooks.findState]()
-        //         .then(() => {
-        //             cosole.log('cool')
-        //             expect(stepFunctionsOfflinePlugin.stateDefinition).to.have.property('Comment')
-        //         })
-        //         .catch(err => {
-        //             console.log("ERR", err)
-        //             expect(err).to.be.an('undefined')
-        //         })
+        //         .catch(err => expect(err).to.be.an('error'))
         // });
+
+        it('should parse serverless.yml and find state', () => {
+            stepFunctionsOfflinePlugin.stateMachine = 'foo';
+            stepFunctionsOfflinePlugin.serverless.config.servicePath = process.cwd() + '/tests';
+            return stepFunctionsOfflinePlugin.hooks[hooks.findState]()
+                .then(() => {
+                    expect(stepFunctionsOfflinePlugin.stateDefinition).to.have.property('Comment')
+                })
+                .catch(err => {
+                    expect(err).to.be.an('undefined')
+                })
+        });
     })
 });
