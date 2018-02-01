@@ -9,40 +9,28 @@ const CLI = require('serverless/lib/classes/CLI');
 describe('build.js', () => {
     describe('#findFunctionsPathAndHandler()', () => {
 
-        it('should parse path - not deep level', () => {
-            stepFunctionsOfflinePlugin.variables = {FirstLambda: 'firstLambda/index.handler'};
-            stepFunctionsOfflinePlugin.hooks[hooks.findFunctionsPathAndHandler]();
-            expect(stepFunctionsOfflinePlugin.variables)
-                .to.deep.include({FirstLambda: {handler: 'handler', filePath: 'firstLambda/index.js'}})
-        });
 
-        // it('should throw err - can not find module', (done) => {
-        //     stepFunctionsOfflinePlugin.hooks[hooks.buildStepWorkFlow]()
-        //         .then((res) => {
-        //             expect(res).to.be.an('undefined')
-        //         })
-        //         .catch((err) => {
-        //             expect(err).to.throw(/Cannot find module/);
-        //         }).finally(done);
-        //
-        // });
-
-        it('should parse path - deep level case', () => {
-            stepFunctionsOfflinePlugin.variables = {FirstLambda: 'examples/firstLambda/index.handler'};
-            stepFunctionsOfflinePlugin.hooks[hooks.findFunctionsPathAndHandler]();
-            expect(stepFunctionsOfflinePlugin.variables)
-                .to.deep.include({FirstLambda: {handler: 'handler', filePath: 'examples/firstLambda/index.js'}})
-        });
-
-        it('should throw err - TRUE', () => {
+        it('should throw err - can not read property', (done) => {
+            stepFunctionsOfflinePlugin.variables = {FirstLambda: 'firstLamda'};
             stepFunctionsOfflinePlugin.hooks[hooks.buildStepWorkFlow]()
                 .then((res) => {
-                    console.log('!!!!!!', res)
+                    expect(res).to.be.an('undefined')
                 })
                 .catch((err) => {
-                    console.log('@@@@@@', err)
-                });
+                    expect(err).to.throw(/Cannot read property/);
+                }).finally(done);
+        });
 
+        it('should throw err - can not read property', (done) => {
+            stepFunctionsOfflinePlugin.variables = {FirstLambda: 'firstLambda'};
+            stepFunctionsOfflinePlugin.hooks[hooks.buildStepWorkFlow]()
+                .then((res) => {
+                console.log(111)
+                })
+                .catch((err) => {
+                    console.log(222)
+
+                }).finally(done);
         });
 
     });

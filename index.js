@@ -67,6 +67,7 @@ class StepFunctionsOfflinePlugin {
     start() {
         this.cliLog('Preparing....');
         process.env.STEP_IS_OFFLINE = true;
+        this.location = this.location || process.cwd();
         this._checkVersion();
     }
 

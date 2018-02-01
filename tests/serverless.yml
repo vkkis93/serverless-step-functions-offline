@@ -17,11 +17,11 @@ provider:
 
 custom:
   stepFunctionsOffline:
-      FirstLambda: firstLambda/index.handler
+      FirstLambda: firstLambda
 
 functions:
-    firstLamda:
-        handler: firstLambda/index.handler
+    firstLambda:
+        handler: examples/firstLambda/index.handler
         name: TheFirstLambda
 
 stepFunctions:
