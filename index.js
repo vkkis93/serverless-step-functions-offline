@@ -10,6 +10,7 @@ class StepFunctionsOfflinePlugin {
         this.options = options;
         this.stateMachine = this.options.stateMachine || this.options.s;
         this.eventFile = this.options.event || this.options.e;
+        this.functions = this.serverless.service.functions;
         this.variables = this.serverless.service.custom.stepFunctionsOffline;
         this.cliLog = this.serverless.cli.log.bind(this.serverless.cli);
         Object.assign(this,
@@ -48,7 +49,7 @@ class StepFunctionsOfflinePlugin {
             'step-functions-offline:start': this.start.bind(this),
             'step-functions-offline:isInstalledPluginSLSStepFunctions': this.isInstalledPluginSLSStepFunctions.bind(this),
             'step-functions-offline:findState': this.findState.bind(this),
-            'step-functions-offline:findFunctionsPathAndHandler': this.findFunctionsPathAndHandler.bind(this),
+            // 'step-functions-offline:findFunctionsPathAndHandler': this.findFunctionsPathAndHandler.bind(this),
             'step-functions-offline:loadEventFile': this.loadEventFile.bind(this),
             'step-functions-offline:buildStepWorkFlow': this.buildStepWorkFlow.bind(this)
         };
