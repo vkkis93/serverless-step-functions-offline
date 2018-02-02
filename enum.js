@@ -1,27 +1,27 @@
 'use strict';
 const _ = require('lodash');
 module.exports = {
-    comparisonOperators: [
-        'And',
-        'BooleanEquals',
-        'Not',
-        'NumericEquals',
-        'NumericGreaterThan',
-        'NumericGreaterThanEquals',
-        'NumericLessThan',
-        'NumericLessThanEquals',
-        'Or',
-        'StringEquals',
-        'StringGreaterThan',
-        'StringGreaterThanEquals',
-        'StringLessThan',
-        'StringLessThanEquals',
-        'TimestampEquals',
-        'TimestampGreaterThan',
-        'TimestampGreaterThanEquals',
-        'TimestampLessThan',
-        'TimestampLessThanEquals'
-    ],
+    // comparisonOperators: [
+    //     'And',
+    //     'BooleanEquals',
+    //     'Not',
+    //     'NumericEquals',
+    //     'NumericGreaterThan',
+    //     'NumericGreaterThanEquals',
+    //     'NumericLessThan',
+    //     'NumericLessThanEquals',
+    //     'Or',
+    //     'StringEquals',
+    //     'StringGreaterThan',
+    //     'StringGreaterThanEquals',
+    //     'StringLessThan',
+    //     'StringLessThanEquals',
+    //     'TimestampEquals',
+    //     'TimestampGreaterThan',
+    //     'TimestampGreaterThanEquals',
+    //     'TimestampLessThan',
+    //     'TimestampLessThanEquals'
+    // ],
 
     supportedComparisonOperator: [
         'BooleanEquals',
