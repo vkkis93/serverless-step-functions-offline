@@ -3,6 +3,7 @@
 [![Known Vulnerabilities](https://snyk.io/test/github/vkkis93/serverless-step-functions-offline/badge.svg?targetFile=package.json)](https://snyk.io/test/github/vkkis93/serverless-step-functions-offline?targetFile=package.json)
 [![Maintainability](https://api.codeclimate.com/v1/badges/b321644ef368976aee12/maintainability)](https://codeclimate.com/github/vkkis93/serverless-step-functions-offline/maintainability)
 [![Dependency Status](https://david-dm.org/vkkis93/serverless-step-functions-offline.svg)](https://david-dm.org/vkkis93/serverless-step-functions-offline)
+[![NPM](https://nodei.co/npm/serverless-step-functions-offline.png)](https://nodei.co/npm/serverless-step-functions-offline/)
 
 # serverless-step-functions-offline
 
@@ -106,17 +107,22 @@ By default `process.env.STEP_IS_OFFLINE = true`.
 # What does plugin support?
 | States | Support |
 | ------ | ------ |
-| ***Task*** | At this moment  plugin **does not support fields** *Retry*, *Catch*, *TimeoutSeconds*, *HeartbeatSeconds*
+| ***Task*** | At this moment  plugin **does not support fields** *Retry*, *Catch*, *TimeoutSeconds*, *HeartbeatSeconds* |
+| ***Choice*** | All comparison operators except: *And*, *Not*, *Or* |
 | ***Wait***  | All following fields: *Seconds*, *SecondsPath*, *Timestamp*, *TimestampPath* |
-| ***Choice*** | All comparison operators except: *And*, *Not*, *Or*|
-| ***Pass*** | * |
-| ***Parallel*** |  Only *Branches*
+| ***Parallel*** |  Only *Branches* |
+| ***Pass*** | Result, ResultPath |
+| ***Fail***| Cause, Error|
+| ***Succeed***| |
+
+
 
 ### TODOs
  - [x] Support context object
  - [x] Improve performance
  - [x] Fixing bugs
  - [x] Add unit tests - to make plugin stable (next step)
+ - [x] Support Pass, Fail, Succeed
  - [ ] Support fields *Retry*, *Catch*
  - [ ] Support other languages except node.js
 

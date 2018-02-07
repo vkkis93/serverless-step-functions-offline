@@ -35,6 +35,10 @@ module.exports = {
         return Promise.resolve()
             .then(() => this.process(this.states[this.stateDefinition.StartAt], this.stateDefinition.StartAt, this.eventFile))
             .catch(err => {
+                if (err === 'Succeed') {
+                    this.cliLog('Serverless step function offline: Finished');
+                    return;
+                }
                 console.log('OOPS', err.stack);
                 this.cliLog(err);
                 throw err;
@@ -46,11 +50,12 @@ module.exports = {
             this.eventForParallelExecution = event;
         }
         const data = this._findStep(state, stateName);
+        // if (data instanceof Promise) return Promise.resolve();
         if (!data || data instanceof Promise) {
             if (!state || state.Type !== 'Parallel') {
                 this.cliLog('Serverless step function offline: Finished');
             }
-            return data;
+            return Promise.resolve();
         }
         if (data.choice) {
             return this._runChoice(data, event);
@@ -62,10 +67,13 @@ module.exports = {
     _findStep(currentState, currentStateName) {
         // it means end of states
         if (!currentState) {
+            this.currentState = null;
+            this.currentStateName = null;
             return;
         }
         this.currentState = currentState;
-        return this._switcherByType(currentState, currentStateName);
+        this.currentStateName = currentStateName;
+        return this._states(currentState, currentStateName);
     },
 
 
@@ -73,11 +81,12 @@ module.exports = {
         if (!f) {
             return;
         }// end of states
+        this.cliLog(`~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${this.currentStateName} started ~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
         f(event, this.contextObject, this.contextObject.done);
 
     },
 
-    _switcherByType(currentState, currentStateName) {
+    _states(currentState, currentStateName) {
         switch (currentState.Type) {
         case 'Task': // just push task to general array
             let f = this.variables[currentStateName];
@@ -85,7 +94,7 @@ module.exports = {
             const {handler, filePath} = this._findFunctionPathAndHandler(f.handler);
             return {
                 name: currentStateName,
-                f: () => require(path.join(process.cwd(), filePath))[handler]
+                f: () => require(path.join(this.location, filePath))[handler]
             };
         case 'Parallel': // look through branches and push all of them
             this.eventParallelResult = [];
@@ -156,6 +165,19 @@ module.exports = {
                     };
                 }
             };
+
+        case 'Succeed':
+            this.cliLog('Succeed');
+            return Promise.resolve('Succeed');
+        case 'Fail':
+            const obj = {};
+            if (currentState.Cause) obj.Cause = currentState.Cause;
+            if (currentState.Error) obj.Error = currentState.Error;
+            this.cliLog('Fail');
+            if (!_.isEmpty(obj)) {
+                this.cliLog(JSON.stringify(obj));
+            }
+            return Promise.resolve('Fail');
         }
         return;
     },
@@ -250,8 +272,9 @@ module.exports = {
         const cb = (err, result) => {
             // return new Promise((resolve, reject) => {
             if (err) {
-                throw `Error in function "${this.currentState.name}": ${JSON.stringify(err)}`; //;TODO NAME
+                throw `Error in function "${this.currentStateName}": ${JSON.stringify(err)}`;
             }
+            this.cliLog(`~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${this.currentStateName} finished ~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
             let state = this.states;
             if (this.parallelBranch && this.parallelBranch.States) {
                 state = this.parallelBranch.States;
