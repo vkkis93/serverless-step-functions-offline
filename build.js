@@ -76,7 +76,7 @@ module.exports = {
         if (!f) {
             return;
         }// end of states
-        this.cliLog(`~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${this.currentStateName} started ~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
+        this.executionLog(`~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${this.currentStateName} started ~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
         f(event, this.contextObject, this.contextObject.done);
 
     },
@@ -222,8 +222,8 @@ module.exports = {
         const waitField = _.omit(currentState, 'Type', 'Next', 'Result');
         const waitKey = Object.keys(waitField)[0];
         if (!waitListKeys.includes(waitKey)) {
-            this.cliLog(`Plugin does not support wait operator "${waitKey}"`);
-            process.exit();
+            const error = `Plugin does not support wait operator "${waitKey}"`;
+            throw new this.serverless.classes.Error(error);
         }
         switch (Object.keys(waitField)[0]) {
         case 'Seconds':
@@ -237,11 +237,10 @@ module.exports = {
         case 'TimestampPath':
             const timestampPath = waitField['TimestampPath'].split('$.')[1];
             if (!event[timestampPath]) {
-                this.cliLog(
+                const error =
                     `An error occurred while executing the state ${currentStateName}. 
-                     The TimestampPath parameter does not reference an input value: ${waitField['TimestampPath']}`
-                );
-                process.exit(1);
+                     The TimestampPath parameter does not reference an input value: ${waitField['TimestampPath']}`;
+                throw new this.serverless.classes.Error(error);
             }
             targetTime = moment(event[timestampPath]);
             timeDiff = targetTime.diff(currentTime, 'seconds');
@@ -251,11 +250,10 @@ module.exports = {
             const secondsPath = waitField['SecondsPath'].split('$.')[1];
             const waitSeconds = event[secondsPath];
             if (!waitSeconds) {
-                this.cliLog(`
+                const error = `
                     An error occurred while executing the state ${currentStateName}. 
-                    The TimestampPath parameter does not reference an input value: ${waitField['SecondsPath']}`
-                );
-                process.exit(1);
+                    The TimestampPath parameter does not reference an input value: ${waitField['SecondsPath']}`;
+                throw new this.serverless.classes.Error(error);
             }
             waitTimer = waitSeconds;
             break;
@@ -269,7 +267,7 @@ module.exports = {
             if (err) {
                 throw `Error in function "${this.currentStateName}": ${JSON.stringify(err)}`;
             }
-            this.cliLog(`~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${this.currentStateName} finished ~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
+            this.executionLog(`~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${this.currentStateName} finished ~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
             let state = this.states;
             if (this.parallelBranch && this.parallelBranch.States) {
                 state = this.parallelBranch.States;
@@ -287,5 +285,9 @@ module.exports = {
             fail: (err) => cb(err)
         };
 
+    },
+
+    executionLog(log) {
+        if (this.detailedLog) this.cliLog(log);
     }
 };

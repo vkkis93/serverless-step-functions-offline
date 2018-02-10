@@ -10,6 +10,7 @@ class StepFunctionsOfflinePlugin {
         this.serverless = serverless;
         this.options = options;
         this.stateMachine = this.options.stateMachine || this.options.s;
+        this.detailedLog = this.options.detailedLog || this.options.l;
         this.eventFile = this.options.event || this.options.e;
         this.functions = this.serverless.service.functions;
         this.variables = this.serverless.service.custom.stepFunctionsOffline;
@@ -40,6 +41,10 @@ class StepFunctionsOfflinePlugin {
                     event: {
                         usage: 'File where is values for execution in JSON format',
                         shortcut: 'e'
+                    },
+                    detailedLog: {
+                        usage: 'Option which enables detailed logs',
+                        shortcut: 'l'
                     }
                 }
             }
@@ -50,7 +55,6 @@ class StepFunctionsOfflinePlugin {
             'step-functions-offline:start': this.start.bind(this),
             'step-functions-offline:isInstalledPluginSLSStepFunctions': this.isInstalledPluginSLSStepFunctions.bind(this),
             'step-functions-offline:findState': this.findState.bind(this),
-            // 'step-functions-offline:findFunctionsPathAndHandler': this.findFunctionsPathAndHandler.bind(this),
             'step-functions-offline:loadEventFile': this.loadEventFile.bind(this),
             'step-functions-offline:loadEnvVariables': this.loadEnvVariables.bind(this),
             'step-functions-offline:buildStepWorkFlow': this.buildStepWorkFlow.bind(this)
@@ -58,11 +62,8 @@ class StepFunctionsOfflinePlugin {
     }
 
     // Entry point for the plugin (sls step offline)
-
-
     start() {
         this.cliLog('Preparing....');
-        process.env.STEP_IS_OFFLINE = true;
 
         this._getLocation();
         this._checkVersion();
@@ -112,16 +113,12 @@ class StepFunctionsOfflinePlugin {
     }
 
     loadEnvVariables() {
-        const environment = this.serverless.service.provider.environment;
-        if (environment) {
-            _.keys(environment).forEach((key) => {
-                process.env[key] = environment[key];
-            });
-        }
+        this.environment = this.serverless.service.provider.environment;
+        process.env.STEP_IS_OFFLINE = true;
+        process.env = _.extend(process.env, this.environment);
     }
 
     findState() {
-        this.cliLog(`Trying to find state "${this.stateMachine}" in serverless.yml`);
         return this.yamlParse()
             .then((yaml) => {
                 this.stateDefinition = this._findState(yaml, this.stateMachine);
