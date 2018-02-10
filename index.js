@@ -28,6 +28,7 @@ class StepFunctionsOfflinePlugin {
                     'findFunctionsPathAndHandler',
                     'findState',
                     'loadEventFile',
+                    'loadEnvVariables',
                     'buildStepWorkFlow'
                 ],
                 options: {
@@ -46,33 +47,35 @@ class StepFunctionsOfflinePlugin {
         };
 
         this.hooks = {
-            'before:step-functions-offline:start': this.checkVariableInYML.bind(this),
             'step-functions-offline:start': this.start.bind(this),
             'step-functions-offline:isInstalledPluginSLSStepFunctions': this.isInstalledPluginSLSStepFunctions.bind(this),
             'step-functions-offline:findState': this.findState.bind(this),
             // 'step-functions-offline:findFunctionsPathAndHandler': this.findFunctionsPathAndHandler.bind(this),
             'step-functions-offline:loadEventFile': this.loadEventFile.bind(this),
+            'step-functions-offline:loadEnvVariables': this.loadEnvVariables.bind(this),
             'step-functions-offline:buildStepWorkFlow': this.buildStepWorkFlow.bind(this)
         };
     }
 
     // Entry point for the plugin (sls step offline)
 
-    checkVariableInYML() {
-        if (!_.has(this.serverless.service, 'custom.stepFunctionsOffline')) {
-            throw new this.serverless.classes.Error('Please add ENV_VARIABLES to section "custom"');
-        }
-        return;
-    }
 
     start() {
         this.cliLog('Preparing....');
+        process.env.STEP_IS_OFFLINE = true;
+
+        this._getLocation();
+        this._checkVersion();
+        this._checkVariableInYML();
+    }
+
+    _getLocation() {
+        if (this.options.location) {
+            this.location = path.join(process.cwd(), this.options.location);
+        }
         if (this.variables.location) {
             this.location = path.join(process.cwd(), this.variables.location);
         }
-        process.env.STEP_IS_OFFLINE = true;
-        this.location = this.location || process.cwd();
-        this._checkVersion();
     }
 
     _checkVersion() {
@@ -82,6 +85,12 @@ class StepFunctionsOfflinePlugin {
         }
     }
 
+    _checkVariableInYML() {
+        if (!_.has(this.serverless.service, 'custom.stepFunctionsOffline')) {
+            throw new this.serverless.classes.Error('Please add ENV_VARIABLES to section "custom"');
+        }
+        return;
+    }
 
     isInstalledPluginSLSStepFunctions() {
         const plugins = this.serverless.service.plugins;
@@ -99,6 +108,15 @@ class StepFunctionsOfflinePlugin {
             this.eventFile = require(path.join(process.cwd(), this.eventFile));
         } catch (err) {
             throw err;
+        }
+    }
+
+    loadEnvVariables() {
+        const environment = this.serverless.service.provider.environment;
+        if (environment) {
+            _.keys(environment).forEach((key) => {
+                process.env[key] = environment[key];
+            });
         }
     }
 

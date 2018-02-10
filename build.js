@@ -35,10 +35,6 @@ module.exports = {
         return Promise.resolve()
             .then(() => this.process(this.states[this.stateDefinition.StartAt], this.stateDefinition.StartAt, this.eventFile))
             .catch(err => {
-                if (err === 'Succeed') {
-                    this.cliLog('Serverless step function offline: Finished');
-                    return;
-                }
                 console.log('OOPS', err.stack);
                 this.cliLog(err);
                 throw err;
@@ -75,7 +71,6 @@ module.exports = {
         this.currentStateName = currentStateName;
         return this._states(currentState, currentStateName);
     },
-
 
     _run(f, event) {
         if (!f) {
