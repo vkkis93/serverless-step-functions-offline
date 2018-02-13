@@ -119,21 +119,16 @@ class StepFunctionsOfflinePlugin {
     }
 
     findState() {
+        this.cliLog(`Trying to find state "${this.stateMachine}" in serverless.yml`);
+
         return this.yamlParse()
-            .then((yaml) => {
-                this.stateDefinition = this._findState(yaml, this.stateMachine);
+            .then(() => {
+                this.stateDefinition = this.getStateMachine(this.stateMachine).definition;
             }).catch(err => {
-                throw new this.serverless
-                    .classes.Error(err);
+                throw new this.serverless.classes.Error(err);
             });
     }
 
-    _findState(yaml, stateMachine) {
-        if (!_.has(yaml, 'stepFunctions.stateMachines') || !yaml.stepFunctions.stateMachines[stateMachine]) {
-            throw `State Machine "${stateMachine}" does not exist in yaml file`;
-        }
-        return yaml.stepFunctions.stateMachines[stateMachine].definition;
-    }
 }
 
 module.exports = StepFunctionsOfflinePlugin;
