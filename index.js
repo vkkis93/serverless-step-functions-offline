@@ -116,7 +116,7 @@ class StepFunctionsOfflinePlugin {
         const envVars = this.getEnvironmentVariables();
 
         if (envVars) {
-            _.keys(envVars).forEach(function (key) {
+            _.keys(envVars).forEach((key) => {
                 process.env[key] = envVars[key];
             });
         }

@@ -18,11 +18,11 @@ module.exports = {
                 this.serverless.service.stepFunctions.stateMachines
                     = serverlessFileParam.stepFunctions
                 && serverlessFileParam.stepFunctions.stateMachines
-                    ? serverlessFileParam.stepFunctions.stateMachines : {};
+                        ? serverlessFileParam.stepFunctions.stateMachines : {};
                 this.serverless.service.stepFunctions.activities
                     = serverlessFileParam.stepFunctions
                 && serverlessFileParam.stepFunctions.activities
-                    ? serverlessFileParam.stepFunctions.activities : [];
+                        ? serverlessFileParam.stepFunctions.activities : [];
 
                 if (!this.serverless.pluginManager.cliOptions.stage) {
                     this.serverless.pluginManager.cliOptions.stage = this.options.stage
