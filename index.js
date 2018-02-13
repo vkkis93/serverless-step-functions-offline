@@ -75,8 +75,9 @@ class StepFunctionsOfflinePlugin {
         this.cliLog(`Trying to find state "${this.stateMachine}" in serverless.yml`);
 
         return this.yamlParse()
-            .then((yaml) => {
-                this.stateDefinition = this._findState(yaml, this.stateMachine);
+            .then(() => {
+                this._loadEnvironmentVariables();
+                this.stateDefinition = this.getStateMachine(this.stateMachine).definition;
             }).catch(err => {
                 throw new this.serverless.classes.Error(err);
             });
@@ -109,6 +110,16 @@ class StepFunctionsOfflinePlugin {
             process.exit(0);
         }
         return yaml.stepFunctions.stateMachines[stateMachine].definition;
+    }
+
+    _loadEnvironmentVariables() {
+        const envVars = this.getEnvironmentVariables();
+
+        if (envVars) {
+            _.keys(envVars).forEach(function (key) {
+                process.env[key] = envVars[key];
+            });
+        }
     }
 }
 
