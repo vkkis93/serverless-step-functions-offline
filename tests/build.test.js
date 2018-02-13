@@ -21,7 +21,7 @@ describe('build.js', () => {
                 }).finally(done);
         });
 
-        it('should throw err - can not read property', (done) => {
+        it('should throw err - goody', (done) => {
             stepFunctionsOfflinePlugin.variables = {FirstLambda: 'firstLambda'};
             stepFunctionsOfflinePlugin.hooks[hooks.buildStepWorkFlow]()
                 .then((res) => {

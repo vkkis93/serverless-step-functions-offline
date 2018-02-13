@@ -1,7 +1,6 @@
 'use strict';
-const BbPromise = require('bluebird');
+const Promise = require('bluebird');
 const path = require('path');
-const _ = require('lodash');
 
 module.exports = {
     yamlParse() {
@@ -37,21 +36,8 @@ module.exports = {
                 }
 
                 this.serverless.variables.populateService(this.serverless.pluginManager.cliOptions);
-                return BbPromise.resolve();
+                return Promise.resolve();
             });
-    },
-
-    getAllStateMachines() {
-        if (Object.prototype.toString.call(this.serverless.service.stepFunctions.stateMachines)
-            !== '[object Object]') {
-            const errorMessage = [
-                'stateMachines property is not an object',
-                ' Please check the README for more info.',
-            ].join('');
-            throw new this.serverless.classes
-                .Error(errorMessage);
-        }
-        return Object.keys(this.serverless.service.stepFunctions.stateMachines);
     },
 
     getStateMachine(stateMachineName) {
@@ -60,44 +46,6 @@ module.exports = {
         }
         throw new this.serverless.classes
             .Error(`stateMachine "${stateMachineName}" doesn't exist in this Service`);
-    },
-
-    isStateMachines() {
-        if (this.serverless.service.stepFunctions != null
-            && this.serverless.service.stepFunctions.stateMachines != null
-            && !_.isEmpty(this.serverless.service.stepFunctions.stateMachines)) {
-            return true;
-        }
-        return false;
-    },
-
-    getAllActivities() {
-        if (!Array.isArray(this.serverless.service.stepFunctions.activities)) {
-            const errorMessage = [
-                'activities property is not an array',
-                ' Please check the README for more info.',
-            ].join('');
-            throw new this.serverless.classes
-                .Error(errorMessage);
-        }
-        return this.serverless.service.stepFunctions.activities;
-    },
-
-    getActivity(activityName) {
-        if (this.serverless.service.stepFunctions.activities.indexOf(activityName) !== -1) {
-            return activityName;
-        }
-
-        throw new this.serverless.classes
-            .Error(`activity "${activityName}" doesn't exist in this Service`);
-    },
-
-    isActivities() {
-        if (this.serverless.service.stepFunctions != null
-            && this.serverless.service.stepFunctions.activities != null
-            && !_.isEmpty(this.serverless.service.stepFunctions.activities)) {
-            return true;
-        }
-        return false;
     }
+
 };

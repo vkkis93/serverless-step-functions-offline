@@ -35,8 +35,8 @@ module.exports = {
         return Promise.resolve()
             .then(() => this.process(this.states[this.stateDefinition.StartAt], this.stateDefinition.StartAt, this.eventFile))
             .catch(err => {
-                console.log('OOPS', err.stack);
-                this.cliLog(err);
+                // console.log('OOPS', err.stack);
+                // this.cliLog(err);
                 throw err;
             });
     },

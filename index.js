@@ -74,7 +74,7 @@ class StepFunctionsOfflinePlugin {
         if (this.options.location) {
             this.location = path.join(process.cwd(), this.options.location);
         }
-        if (this.variables.location) {
+        if (this.variables && this.variables.location) {
             this.location = path.join(process.cwd(), this.variables.location);
         }
     }
@@ -116,6 +116,7 @@ class StepFunctionsOfflinePlugin {
         this.environment = this.serverless.service.provider.environment;
         process.env.STEP_IS_OFFLINE = true;
         process.env = _.extend(process.env, this.environment);
+        return;
     }
 
     findState() {

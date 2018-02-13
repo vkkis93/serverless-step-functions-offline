@@ -8,19 +8,20 @@ const StepFunctionsOfflinePlugin = require('../index');
 
 describe('index.js', () => {
     global.hooks = {
-        beforeStart: 'before:step-functions-offline:start',
         start: 'step-functions-offline:start',
         isInstalledPluginSLSStepFunctions: 'step-functions-offline:isInstalledPluginSLSStepFunctions',
         findState: 'step-functions-offline:findState',
         findFunctionsPathAndHandler: 'step-functions-offline:findFunctionsPathAndHandler',
         loadEventFile: 'step-functions-offline:loadEventFile',
+        loadEnvVariables: 'step-functions-offline:loadEnvVariables',
         buildStepWorkFlow: 'step-functions-offline:buildStepWorkFlow'
     };
 
     const options = {
         stateMachine: 'foo',
         s: 'foo',
-        event: null
+        event: null,
+        location: './tests'
     };
     const serverless = new Serverless();
     serverless.cli = new CLI();
@@ -49,14 +50,14 @@ describe('index.js', () => {
 
     describe('#checkVariableInYML', () => {
         it('should throw error - custom.stepFunctionsOffline does not exist', () => {
-            expect(stepFunctionsOfflinePlugin.hooks[hooks.beforeStart]).to.throw(/ENV_VARIABLES/);
+            expect(stepFunctionsOfflinePlugin.hooks[hooks.start]).to.throw(/ENV_VARIABLES/);
         });
 
         it('should exists custom.stepFunctionsOffline', () => {
             stepFunctionsOfflinePlugin.serverless.service.custom = {
                 stepFunctionsOffline: {FirstLambda: 'firstLamda/index.handler'}
             };
-            expect(stepFunctionsOfflinePlugin.hooks[hooks.beforeStart]).to.not.throw();
+            expect(stepFunctionsOfflinePlugin.hooks[hooks.start]).to.not.throw();
         });
 
     });
@@ -112,6 +113,15 @@ describe('index.js', () => {
             expect(SFOP.hooks[hooks.loadEventFile]).to.throw(/Cannot find module/);
         });
     })
+
+
+    describe('#loadEnvVariables', () => {
+        it('should return empty object', () => {
+            const result = stepFunctionsOfflinePlugin.hooks[hooks.loadEnvVariables]();
+            expect(result).to.be.undefined;
+        });
+
+    });
 
     describe('#findState', () => {
         it('should throw err - serverless.yml not exists', () => {
