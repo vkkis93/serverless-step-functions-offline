@@ -6,6 +6,10 @@ checks:
   method-lines:
     config:
       threshold: 100
+  return-statements:
+      enabled: true
+      config:
+        threshold: 10
 plugins:
   eslint:
     enabled: true
