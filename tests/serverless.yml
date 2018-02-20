@@ -33,10 +33,10 @@ stepFunctions:
         States:
             FirstLambda:
               Type: Task
-              Next: FinalState
+              Next: wait_using_seconds
             wait_using_seconds:
               Type: Wait
-              Seconds: 10
+              Seconds: 2
               Next: wait_using_timestamp
             wait_using_timestamp:
               Type: Wait

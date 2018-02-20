@@ -84,9 +84,15 @@ module.exports = {
     _states(currentState, currentStateName) {
         switch (currentState.Type) {
         case 'Task': // just push task to general array
+            //before each task restore global default env variables
+            process.env = Object.assign({}, this.environmentVariables);
             let f = this.variables[currentStateName];
             f = this.functions[f];
             const {handler, filePath} = this._findFunctionPathAndHandler(f.handler);
+            // if function has additional variables - attach it to function
+            if (f.environment) {
+                process.env = _.extend(process.env, f.environment);
+            }
             return {
                 name: currentStateName,
                 f: () => require(path.join(this.location, filePath))[handler]

@@ -13,7 +13,7 @@
     "url": "git@github.com:vkkis93/serverless-step-functions-offline.git"
   },
   "scripts": {
-    "test": "nyc ./node_modules/mocha/bin/mocha  ./tests/index.test.js ./tests/enum.test.js ./tests/parse.test.js ./tests/build.test.js",
+    "test": "nyc ./node_modules/mocha/bin/mocha  ./tests/index.test.js ./tests/enum.test.js ./tests/build.test.js",
     "lint": "eslint ./**  --ext .js"
   },
   "dependencies": {

@@ -116,6 +116,7 @@ class StepFunctionsOfflinePlugin {
         this.environment = this.serverless.service.provider.environment;
         process.env.STEP_IS_OFFLINE = true;
         process.env = _.extend(process.env, this.environment);
+        this.environmentVariables = Object.assign({}, process.env); //store global env variables;
         return;
     }
 
