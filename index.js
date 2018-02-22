@@ -122,7 +122,6 @@ class StepFunctionsOfflinePlugin {
 
     findState() {
         this.cliLog(`Trying to find state "${this.stateMachine}" in serverless.yml`);
-
         return this.yamlParse()
             .then(() => {
                 this.stateDefinition = this.getStateMachine(this.stateMachine).definition;

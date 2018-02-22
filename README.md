@@ -6,7 +6,7 @@
 [![NPM](https://nodei.co/npm/serverless-step-functions-offline.png)](https://nodei.co/npm/serverless-step-functions-offline/)
 
 # serverless-step-functions-offline
-
+:warning: Version 2.0 with breaking changes see [usage](#usage)  :warning:
 ## Documentation
 
 - [Install](#install)
@@ -66,11 +66,18 @@ plugins:
 
 custom:
   stepFunctionsOffline:
-    FirstLambda: firstLambda/index.handler
+    StepOne: firstLambda
     # ...
     # ...
-    SecondLambda: myDir/index.main
+    stepTwo: secondLambda
 
+functions:
+    firstLambda:
+        handler: firstLambda/index.handler
+        name: TheFirstLambda
+    secondLambda:
+        handler: secondLambda/index.handler
+        name: TheSecondLambda
 stepFunctions:
   stateMachines:
     foo:
@@ -89,8 +96,8 @@ stepFunctions:
 ```
 
 Where:
-- `FirstLambda` is the name of step in state machine
-- `firstLambda/index.handler` is the path to Lambda
+- `StepOne` is the name of step in state machine
+- `firstLambda` is the name of function in section **functions**
 
 # Run Plugin
 ```bash
@@ -121,9 +128,8 @@ By default `process.env.STEP_IS_OFFLINE = true`.
  - [x] Support context object
  - [x] Improve performance
  - [x] Fixing bugs
- - [x] Add unit tests - to make plugin stable (next step)
  - [x] Support Pass, Fail, Succeed
- - [ ] Support fields *Retry*, *Catch*
+ - [ ] Add unit tests - to make plugin stable (next step) - [ ] Support fields *Retry*, *Catch*
  - [ ] Support other languages except node.js
 
 
