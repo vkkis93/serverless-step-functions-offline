@@ -52,7 +52,7 @@ You must have this plugin installed and correctly specified statemachine definit
 Example of statemachine definition you can see [here](https://github.com/horike37/serverless-step-functions#setup).
 
 # Usage
-After all steps are done, need to add to section **custom** in serverless.yml the key **stepFunctionsOffline** with properties *stateName*: path to lambda function.
+After all steps are done, need to add to section **custom** in serverless.yml the key **stepFunctionsOffline** with properties *stateName*: name of lambda function.
 
 For example:
 
@@ -66,10 +66,10 @@ plugins:
 
 custom:
   stepFunctionsOffline:
-    StepOne: firstLambda
+    stepOne: firstLambda (v2.0)
     # ...
     # ...
-    stepTwo: secondLambda
+    stepTwo: secondLambda (v2.0)
 
 functions:
     firstLambda:
@@ -131,9 +131,6 @@ By default `process.env.STEP_IS_OFFLINE = true`.
  - [x] Support Pass, Fail, Succeed
  - [ ] Add unit tests - to make plugin stable (next step) - [ ] Support fields *Retry*, *Catch*
  - [ ] Support other languages except node.js
-
-
-If you have any questions, feel free to contact me: vkkis1993@gmail.com
 
 # License
 

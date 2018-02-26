@@ -88,6 +88,10 @@ module.exports = {
             process.env = Object.assign({}, this.environmentVariables);
             let f = this.variables[currentStateName];
             f = this.functions[f];
+            if (!f) {
+                this.cliLog(`Function "${currentStateName}" does not presented in serverless.yml`);
+                process.exit(1);
+            }
             const {handler, filePath} = this._findFunctionPathAndHandler(f.handler);
             // if function has additional variables - attach it to function
             if (f.environment) {
