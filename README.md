@@ -3,9 +3,10 @@
 [![Known Vulnerabilities](https://snyk.io/test/github/vkkis93/serverless-step-functions-offline/badge.svg?targetFile=package.json)](https://snyk.io/test/github/vkkis93/serverless-step-functions-offline?targetFile=package.json)
 [![Maintainability](https://api.codeclimate.com/v1/badges/b321644ef368976aee12/maintainability)](https://codeclimate.com/github/vkkis93/serverless-step-functions-offline/maintainability)
 [![Dependency Status](https://david-dm.org/vkkis93/serverless-step-functions-offline.svg)](https://david-dm.org/vkkis93/serverless-step-functions-offline)
+[![NPM](https://nodei.co/npm/serverless-step-functions-offline.png)](https://nodei.co/npm/serverless-step-functions-offline/)
 
 # serverless-step-functions-offline
-
+:warning: Version 2.0 with breaking changes see [usage](#usage)  :warning:
 ## Documentation
 
 - [Install](#install)
@@ -51,7 +52,7 @@ You must have this plugin installed and correctly specified statemachine definit
 Example of statemachine definition you can see [here](https://github.com/horike37/serverless-step-functions#setup).
 
 # Usage
-After all steps are done, need to add to section **custom** in serverless.yml the key **stepFunctionsOffline** with properties *stateName*: path to lambda function.
+After all steps are done, need to add to section **custom** in serverless.yml the key **stepFunctionsOffline** with properties *stateName*: name of lambda function.
 
 For example:
 
@@ -65,11 +66,18 @@ plugins:
 
 custom:
   stepFunctionsOffline:
-    FirstLambda: firstLambda/index.handler
+    stepOne: firstLambda (v2.0)
     # ...
     # ...
-    SecondLambda: myDir/index.main
+    stepTwo: secondLambda (v2.0)
 
+functions:
+    firstLambda:
+        handler: firstLambda/index.handler
+        name: TheFirstLambda
+    secondLambda:
+        handler: secondLambda/index.handler
+        name: TheSecondLambda
 stepFunctions:
   stateMachines:
     foo:
@@ -88,8 +96,8 @@ stepFunctions:
 ```
 
 Where:
-- `FirstLambda` is the name of step in state machine
-- `firstLambda/index.handler` is the path to Lambda
+- `StepOne` is the name of step in state machine
+- `firstLambda` is the name of function in section **functions**
 
 # Run Plugin
 ```bash
@@ -106,22 +114,23 @@ By default `process.env.STEP_IS_OFFLINE = true`.
 # What does plugin support?
 | States | Support |
 | ------ | ------ |
-| ***Task*** | At this moment  plugin **does not support fields** *Retry*, *Catch*, *TimeoutSeconds*, *HeartbeatSeconds*
+| ***Task*** | At this moment  plugin **does not support fields** *Retry*, *Catch*, *TimeoutSeconds*, *HeartbeatSeconds* |
+| ***Choice*** | All comparison operators except: *And*, *Not*, *Or* |
 | ***Wait***  | All following fields: *Seconds*, *SecondsPath*, *Timestamp*, *TimestampPath* |
-| ***Choice*** | All comparison operators except: *And*, *Not*, *Or*|
-| ***Pass*** | * |
-| ***Parallel*** |  Only *Branches*
+| ***Parallel*** |  Only *Branches* |
+| ***Pass*** | Result, ResultPath |
+| ***Fail***| Cause, Error|
+| ***Succeed***| |
+
+
 
 ### TODOs
  - [x] Support context object
  - [x] Improve performance
  - [x] Fixing bugs
- - [ ] Add unit tests - to make plugin stable (next step)
- - [ ] Support fields *Retry*, *Catch*
+ - [x] Support Pass, Fail, Succeed
+ - [ ] Add unit tests - to make plugin stable (next step) - [ ] Support fields *Retry*, *Catch*
  - [ ] Support other languages except node.js
-
-
-If you have any questions, feel free to contact me: vkkis1993@gmail.com
 
 # License
 

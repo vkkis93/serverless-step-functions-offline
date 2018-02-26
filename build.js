@@ -7,15 +7,16 @@ const enumList = require('./enum');
 
 module.exports = {
 
-    findFunctionsPathAndHandler() {
-        for (const functionName in this.variables) {
-            const functionHandler = this.variables[functionName];
-            const {handler, filePath} = this._findFunctionPathAndHandler(functionHandler);
-
-            this.variables[functionName] = {handler, filePath};
-        }
-    },
-
+    // findFunctionsPathAndHandler() {
+    //     for (const functionName in this.variables) {
+    //         const functionHandler = this.variables[functionName];
+    //         const {handler, filePath} = this._findFunctionPathAndHandler(functionHandler);
+    //
+    //         this.variables[functionName] = {handler, filePath};
+    //     }
+    //     console.log('this.va', this.variables)
+    // },
+    //
     _findFunctionPathAndHandler(functionHandler) {
         const dir = path.dirname(functionHandler);
         const handler = path.basename(functionHandler);
@@ -33,11 +34,10 @@ module.exports = {
 
         return Promise.resolve()
             .then(() => this.process(this.states[this.stateDefinition.StartAt], this.stateDefinition.StartAt, this.eventFile))
-            .then(() => this.cliLog('Serverless step function offline: Finished'))
             .catch(err => {
-                console.log('OOPS', err.stack);
-                this.cliLog(err);
-                process.exit(1);
+                // console.log('OOPS', err.stack);
+                // this.cliLog(err);
+                throw err;
             });
     },
 
@@ -46,7 +46,13 @@ module.exports = {
             this.eventForParallelExecution = event;
         }
         const data = this._findStep(state, stateName);
-        if (!data || data instanceof Promise) {return data;}
+        // if (data instanceof Promise) return Promise.resolve();
+        if (!data || data instanceof Promise) {
+            if (!state || state.Type !== 'Parallel') {
+                this.cliLog('Serverless step function offline: Finished');
+            }
+            return Promise.resolve();
+        }
         if (data.choice) {
             return this._runChoice(data, event);
         } else {
@@ -56,27 +62,44 @@ module.exports = {
 
     _findStep(currentState, currentStateName) {
         // it means end of states
-        if (!currentState) {return;}
+        if (!currentState) {
+            this.currentState = null;
+            this.currentStateName = null;
+            return;
+        }
         this.currentState = currentState;
-        return this._switcherByType(currentState, currentStateName);
+        this.currentStateName = currentStateName;
+        return this._states(currentState, currentStateName);
     },
-
 
     _run(f, event) {
-        return new Promise((resolve, reject) => {
-            if (!f) return Promise.resolve();// end of states
-            f(event, this.contextObject, this.contextObject.done);
-        }).catch(err => {
-            throw err;
-        });
+        if (!f) {
+            return;
+        }// end of states
+        this.executionLog(`~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${this.currentStateName} started ~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
+        f(event, this.contextObject, this.contextObject.done);
+
     },
 
-    _switcherByType(currentState, currentStateName) {
+    _states(currentState, currentStateName) {
         switch (currentState.Type) {
         case 'Task': // just push task to general array
+            //before each task restore global default env variables
+            process.env = Object.assign({}, this.environmentVariables);
+            let f = this.variables[currentStateName];
+            f = this.functions[f];
+            if (!f) {
+                this.cliLog(`Function "${currentStateName}" does not presented in serverless.yml`);
+                process.exit(1);
+            }
+            const {handler, filePath} = this._findFunctionPathAndHandler(f.handler);
+            // if function has additional variables - attach it to function
+            if (f.environment) {
+                process.env = _.extend(process.env, f.environment);
+            }
             return {
                 name: currentStateName,
-                f: () => require(path.join(process.cwd(), this.variables[currentStateName].filePath))[this.variables[currentStateName].handler]
+                f: () => require(path.join(this.location, filePath))[handler]
             };
         case 'Parallel': // look through branches and push all of them
             this.eventParallelResult = [];
@@ -137,9 +160,48 @@ module.exports = {
                 }
             };
         case 'Pass':
-            return {f: () => this.cliLog('PASS STATE')};
+            return {
+                f: (event) => {
+                    return (arg1, arg2, cb) => {
+                        this.cliLog('!!! Pass State !!!');
+                        const eventResult = this._passStateFields(currentState, event);
+                        cb(null, eventResult);
+
+                    };
+                }
+            };
+
+        case 'Succeed':
+            this.cliLog('Succeed');
+            return Promise.resolve('Succeed');
+        case 'Fail':
+            const obj = {};
+            if (currentState.Cause) obj.Cause = currentState.Cause;
+            if (currentState.Error) obj.Error = currentState.Error;
+            this.cliLog('Fail');
+            if (!_.isEmpty(obj)) {
+                this.cliLog(JSON.stringify(obj));
+            }
+            return Promise.resolve('Fail');
         }
         return;
+    },
+
+    _passStateFields(currentState, event) {
+        if (!currentState.ResultPath) {
+            if (!currentState.Result) {
+                return event;
+            }
+            return currentState.Result;
+        } else {
+            const variableName = currentState.ResultPath.split('$.')[1];
+            if (!currentState.Result) {
+                event[variableName] = event;
+                return event;
+            }
+            event[variableName] = currentState.Result;
+            return event;
+        }
     },
 
     _runChoice(data, result) {
@@ -170,8 +232,8 @@ module.exports = {
         const waitField = _.omit(currentState, 'Type', 'Next', 'Result');
         const waitKey = Object.keys(waitField)[0];
         if (!waitListKeys.includes(waitKey)) {
-            this.cliLog(`Plugin does not support wait operator "${waitKey}"`);
-            process.exit();
+            const error = `Plugin does not support wait operator "${waitKey}"`;
+            throw new this.serverless.classes.Error(error);
         }
         switch (Object.keys(waitField)[0]) {
         case 'Seconds':
@@ -185,11 +247,10 @@ module.exports = {
         case 'TimestampPath':
             const timestampPath = waitField['TimestampPath'].split('$.')[1];
             if (!event[timestampPath]) {
-                this.cliLog(
+                const error =
                     `An error occurred while executing the state ${currentStateName}. 
-                     The TimestampPath parameter does not reference an input value: ${waitField['TimestampPath']}`
-                );
-                process.exit(1);
+                     The TimestampPath parameter does not reference an input value: ${waitField['TimestampPath']}`;
+                throw new this.serverless.classes.Error(error);
             }
             targetTime = moment(event[timestampPath]);
             timeDiff = targetTime.diff(currentTime, 'seconds');
@@ -199,11 +260,10 @@ module.exports = {
             const secondsPath = waitField['SecondsPath'].split('$.')[1];
             const waitSeconds = event[secondsPath];
             if (!waitSeconds) {
-                this.cliLog(`
+                const error = `
                     An error occurred while executing the state ${currentStateName}. 
-                    The TimestampPath parameter does not reference an input value: ${waitField['SecondsPath']}`
-                );
-                process.exit(1);
+                    The TimestampPath parameter does not reference an input value: ${waitField['SecondsPath']}`;
+                throw new this.serverless.classes.Error(error);
             }
             waitTimer = waitSeconds;
             break;
@@ -213,17 +273,19 @@ module.exports = {
 
     createContextObject() {
         const cb = (err, result) => {
-            return new Promise((resolve, reject) => {
-                if (err) {
-                    throw `Error in function "${this.currentState.name}": ${JSON.stringify(err)}`; //;TODO NAME
-                }
-                let state = this.states;
-                if (this.parallelBranch && this.parallelBranch.States) {
-                    state = this.parallelBranch.States;
-                    if (!this.currentState.Next) this.eventParallelResult.push(result); //it means the end of execution of branch
-                }
-                this.process(state[this.currentState.Next], this.currentState.Next, result);
-            });
+            // return new Promise((resolve, reject) => {
+            if (err) {
+                throw `Error in function "${this.currentStateName}": ${JSON.stringify(err)}`;
+            }
+            this.executionLog(`~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${this.currentStateName} finished ~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
+            let state = this.states;
+            if (this.parallelBranch && this.parallelBranch.States) {
+                state = this.parallelBranch.States;
+                if (!this.currentState.Next) this.eventParallelResult.push(result); //it means the end of execution of branch
+            }
+            this.process(state[this.currentState.Next], this.currentState.Next, result);
+            // return resolve();
+            // });
         };
 
         return {
@@ -233,5 +295,9 @@ module.exports = {
             fail: (err) => cb(err)
         };
 
+    },
+
+    executionLog(log) {
+        if (this.detailedLog) this.cliLog(log);
     }
 };

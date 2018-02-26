@@ -6,13 +6,13 @@ const path = require('path');
 
 class StepFunctionsOfflinePlugin {
     constructor(serverless, options) {
+        this.location = process.cwd();
         this.serverless = serverless;
         this.options = options;
         this.stateMachine = this.options.stateMachine || this.options.s;
+        this.detailedLog = this.options.detailedLog || this.options.l;
         this.eventFile = this.options.event || this.options.e;
-        if (!_.has(this.serverless.service, 'custom.stepFunctionsOffline')) {
-            throw new this.serverless.classes.Error('Please add ENV_VARIABLES to section "custom"');
-        }
+        this.functions = this.serverless.service.functions;
         this.variables = this.serverless.service.custom.stepFunctionsOffline;
         this.cliLog = this.serverless.cli.log.bind(this.serverless.cli);
         Object.assign(this,
@@ -23,11 +23,13 @@ class StepFunctionsOfflinePlugin {
             'step-functions-offline': {
                 usage: 'Will run your step function locally',
                 lifecycleEvents: [
+                    'checkVariableInYML',
                     'start',
                     'isInstalledPluginSLSStepFunctions',
                     'findFunctionsPathAndHandler',
                     'findState',
                     'loadEventFile',
+                    'loadEnvVariables',
                     'buildStepWorkFlow'
                 ],
                 options: {
@@ -39,6 +41,10 @@ class StepFunctionsOfflinePlugin {
                     event: {
                         usage: 'File where is values for execution in JSON format',
                         shortcut: 'e'
+                    },
+                    detailedLog: {
+                        usage: 'Option which enables detailed logs',
+                        shortcut: 'l'
                     }
                 }
             }
@@ -49,8 +55,8 @@ class StepFunctionsOfflinePlugin {
             'step-functions-offline:start': this.start.bind(this),
             'step-functions-offline:isInstalledPluginSLSStepFunctions': this.isInstalledPluginSLSStepFunctions.bind(this),
             'step-functions-offline:findState': this.findState.bind(this),
-            'step-functions-offline:findFunctionsPathAndHandler': this.findFunctionsPathAndHandler.bind(this),
             'step-functions-offline:loadEventFile': this.loadEventFile.bind(this),
+            'step-functions-offline:loadEnvVariables': this.loadEnvVariables.bind(this),
             'step-functions-offline:buildStepWorkFlow': this.buildStepWorkFlow.bind(this)
         };
     }
@@ -58,37 +64,40 @@ class StepFunctionsOfflinePlugin {
     // Entry point for the plugin (sls step offline)
     start() {
         this.cliLog('Preparing....');
-        process.env.STEP_IS_OFFLINE = true;
+
+        this._getLocation();
         this._checkVersion();
+        this._checkVariableInYML();
+    }
+
+    _getLocation() {
+        if (this.options.location) {
+            this.location = path.join(process.cwd(), this.options.location);
+        }
+        if (this.variables && this.variables.location) {
+            this.location = path.join(process.cwd(), this.variables.location);
+        }
     }
 
     _checkVersion() {
         const version = this.serverless.version;
-
         if (!version.startsWith('1.')) {
-            this.cliLog(`Serverless step offline requires Serverless v1.x.x but found ${version}`);
-            process.exit(0);
+            throw new this.serverless.classes.Error(`Serverless step offline requires Serverless v1.x.x but found ${version}`);
         }
     }
 
-    findState() {
-        this.cliLog(`Trying to find state "${this.stateMachine}" in serverless.yml`);
-
-        return this.yamlParse()
-            .then(() => {
-                this._loadEnvironmentVariables();
-                this.stateDefinition = this.getStateMachine(this.stateMachine).definition;
-            }).catch(err => {
-                throw new this.serverless.classes.Error(err);
-            });
+    _checkVariableInYML() {
+        if (!_.has(this.serverless.service, 'custom.stepFunctionsOffline')) {
+            throw new this.serverless.classes.Error('Please add ENV_VARIABLES to section "custom"');
+        }
+        return;
     }
 
     isInstalledPluginSLSStepFunctions() {
         const plugins = this.serverless.service.plugins;
-
         if (plugins.indexOf('serverless-step-functions') < 0) {
-            this.cliLog('Error: Please install plugin "serverless-step-functions". Package does not work without it');
-            process.exit(1);
+            const error = 'Error: Please install plugin "serverless-step-functions". Package does not work without it';
+            throw new this.serverless.classes.Error(error);
         }
     }
 
@@ -96,7 +105,6 @@ class StepFunctionsOfflinePlugin {
         if (!this.eventFile) {
             return this.eventFile = {};
         }
-
         try {
             this.eventFile = require(path.join(process.cwd(), this.eventFile));
         } catch (err) {
@@ -104,23 +112,24 @@ class StepFunctionsOfflinePlugin {
         }
     }
 
-    _findState(yaml, stateMachine) {
-        if (!_.has(yaml, 'stepFunctions.stateMachines') || !yaml.stepFunctions.stateMachines[stateMachine]) {
-            this.cliLog(`State Machine "${stateMachine}" does not exist in yaml file`);
-            process.exit(0);
-        }
-        return yaml.stepFunctions.stateMachines[stateMachine].definition;
+    loadEnvVariables() {
+        this.environment = this.serverless.service.provider.environment;
+        process.env.STEP_IS_OFFLINE = true;
+        process.env = _.extend(process.env, this.environment);
+        this.environmentVariables = Object.assign({}, process.env); //store global env variables;
+        return;
     }
 
-    _loadEnvironmentVariables() {
-        const envVars = this.getEnvironmentVariables();
-
-        if (envVars) {
-            _.keys(envVars).forEach((key) => {
-                process.env[key] = envVars[key];
+    findState() {
+        this.cliLog(`Trying to find state "${this.stateMachine}" in serverless.yml`);
+        return this.yamlParse()
+            .then(() => {
+                this.stateDefinition = this.getStateMachine(this.stateMachine).definition;
+            }).catch(err => {
+                throw new this.serverless.classes.Error(err);
             });
-        }
     }
+
 }
 
 module.exports = StepFunctionsOfflinePlugin;
