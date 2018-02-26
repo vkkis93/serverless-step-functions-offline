@@ -1,5 +1,8 @@
 version: "2"
 checks:
+  file-lines:
+      config:
+        threshold: 500
   method-complexity:
     config:
       threshold: 50
