@@ -129,7 +129,8 @@ By default `process.env.STEP_IS_OFFLINE = true`.
  - [x] Improve performance
  - [x] Fixing bugs
  - [x] Support Pass, Fail, Succeed
- - [ ] Add unit tests - to make plugin stable (next step) - [ ] Support fields *Retry*, *Catch*
+ - [ ] Add unit tests - to make plugin stable (next step) 
+ - [ ] Support fields *Retry*, *Catch*
  - [ ] Support other languages except node.js
 
 # License
