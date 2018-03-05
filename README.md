@@ -15,6 +15,8 @@
 - [Usage](#usage)
 - [Run plugin](#run-plugin)
 - [What does plugin support](#what-does-plugin-support)
+- [Usage with serverless-wepback](#usage-with-serverless-webpack)
+
 
 # Install
 Using NPM:
@@ -124,7 +126,7 @@ By default `process.env.STEP_IS_OFFLINE = true`.
 
 ### Usage with serverless-webpack
 
-The plugin integrates very well with [serverless-webpack][#https://github.com/serverless-heaven/serverless-webpack].
+The plugin integrates very well with [serverless-webpack](https://github.com/serverless-heaven/serverless-webpack).
 
 Add the plugins `serverless-webpack` to your `serverless.yml` file and make sure that `serverless-webpack`
 precedes `serverless-step-functions-offline` as the order is important:
