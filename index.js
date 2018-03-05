@@ -9,7 +9,7 @@ class StepFunctionsOfflinePlugin {
         this.location = process.cwd();
         this.serverless = serverless;
         this.options = options;
-        this.stateMachine = this.options.stateMachine || this.options.s;
+        this.stateMachine = this.options.stateMachine;
         this.detailedLog = this.options.detailedLog || this.options.l;
         this.eventFile = this.options.event || this.options.e;
         this.functions = this.serverless.service.functions;
@@ -35,7 +35,6 @@ class StepFunctionsOfflinePlugin {
                 options: {
                     stateMachine: {
                         usage: 'The stage used to execute.',
-                        shortcut: 's',
                         required: true
                     },
                     event: {

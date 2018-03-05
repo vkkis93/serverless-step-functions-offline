@@ -122,7 +122,20 @@ By default `process.env.STEP_IS_OFFLINE = true`.
 | ***Fail***| Cause, Error|
 | ***Succeed***| |
 
+### Usage with serverless-webpack
 
+The plugin integrates very well with [serverless-webpack][#https://github.com/serverless-heaven/serverless-webpack].
+
+Add the plugins `serverless-webpack` to your `serverless.yml` file and make sure that `serverless-webpack`
+precedes `serverless-step-functions-offline` as the order is important:
+```yaml
+  plugins:
+    ...
+    - serverless-webpack
+    ...
+    - serverless-step-functions-offline
+    ...
+```
 
 ### TODOs
  - [x] Support context object
