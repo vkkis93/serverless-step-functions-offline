@@ -142,6 +142,7 @@ precedes `serverless-step-functions-offline` as the order is important:
  - [x] Improve performance
  - [x] Fixing bugs
  - [x] Support Pass, Fail, Succeed
+ - [x] Integration with serverless-webpack
  - [ ] Add unit tests - to make plugin stable (next step) 
  - [ ] Support fields *Retry*, *Catch*
  - [ ] Support other languages except node.js
