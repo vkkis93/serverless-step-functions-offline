@@ -5,6 +5,7 @@
 [![Dependency Status](https://david-dm.org/vkkis93/serverless-step-functions-offline.svg)](https://david-dm.org/vkkis93/serverless-step-functions-offline)
 [![NPM](https://nodei.co/npm/serverless-step-functions-offline.png)](https://nodei.co/npm/serverless-step-functions-offline/)
 
+
 # serverless-step-functions-offline
 :warning: Version 2.0 with breaking changes see [usage](#usage)  :warning:
 ## Documentation
@@ -17,6 +18,7 @@
 - [What does plugin support](#what-does-plugin-support)
 - [Usage with serverless-wepback](#usage-with-serverless-webpack)
 
+If you use it, ⭐️ it!
 
 # Install
 Using NPM:
@@ -148,6 +150,7 @@ precedes `serverless-step-functions-offline` as the order is important:
  - [ ] Add unit tests - to make plugin stable (next step) 
  - [ ] Support fields *Retry*, *Catch*
  - [ ] Support other languages except node.js
+
 
 # License
 
