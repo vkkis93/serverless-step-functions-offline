@@ -204,15 +204,34 @@ module.exports = {
         }
     },
 
-    _runChoice(data, result) {
+   _runChoice(data, result) {
         let existsAnyMatches = false;
 
+        function getChoice(results,choiceVar){
+            let shallow = results;
+            // split the choice.variable string
+            let keys = choiceVar.split('.');
+
+            // loop over the split variable string, descending the 
+            for (let k in keys){
+                if (shallow.hasOwnProperty(keys[k])){
+                    shallow = shallow[keys[k]];
+                }
+            }
+
+            // if shallow didn't change, return undefined 
+            if (shallow === results)
+                return undefined;
+            else
+                return shallow;
+        }
         //look through choice and find appropriate
         _.forEach(data.choice, choice => {
             //check if result from previous function has of value which described in Choice
-            if (!_.isNil(result[choice.variable])) {
+            if (!_.isNil(getChoice(result,choice.variable))) {
                 //check condition
-                const isConditionTrue = choice.checkFunction(result[choice.variable], choice.compareWithValue);
+                //const isConditionTrue = choice.checkFunction(result[choice.variable], choice.compareWithValue);
+                const isConditionTrue = choice.checkFunction(getChoice(result,choice.variable), choice.compareWithValue);
                 if (isConditionTrue) {
                     existsAnyMatches = true;
                     return this.process(this.states[choice.choiceFunction], choice.choiceFunction, result);
