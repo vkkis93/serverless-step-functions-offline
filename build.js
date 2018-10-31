@@ -89,7 +89,7 @@ module.exports = {
             const functionN = currentState.Resource.split(':');
             const functionName = functionN[functionN.length - 1];
             // let f = this.variables[currentStateName];
-            let f = this.functions[functionName];
+            const f = this.functions[functionName];
             if (!f) {
                 this.cliLog(`Function "${currentStateName}" does not presented in serverless.yml`);
                 process.exit(1);
