@@ -1,6 +1,6 @@
 {
   "name": "serverless-step-functions-offline",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "Serverlesss plugin to support step function offline",
   "main": "index.js",
   "author": "viktor.kis <vkkis1993@gmail.com>",
@@ -18,11 +18,11 @@
   },
   "dependencies": {
     "bluebird": "^3.5.1",
-    "lodash": "^4.17.4",
+    "lodash": "4.17.11",
     "moment": "^2.20.1"
   },
   "devDependencies": {
-    "eslint": "^4.16.0",
+    "eslint": "4.17.11",
     "chai": "^4.1.2",
     "mocha": "^5.0.0",
     "nyc": "^11.4.1",

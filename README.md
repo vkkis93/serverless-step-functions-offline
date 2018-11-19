@@ -7,7 +7,7 @@
 
 
 # serverless-step-functions-offline
-:warning: Version 2.0 with breaking changes see [usage](#usage)  :warning:
+
 ## Documentation
 
 - [Install](#install)
