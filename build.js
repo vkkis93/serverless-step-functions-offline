@@ -96,6 +96,7 @@ module.exports = {
             process.env = Object.assign({}, this.environmentVariables);
             const functionN = currentState.Resource.split(':');
             const functionName = functionN[functionN.length - 1];
+            // let f = this.variables[currentStateName];
             const f = this.functions[functionName];
             if (!f) {
                 this.cliLog(`Function "${currentState}" does not presented in serverless.yml`);
