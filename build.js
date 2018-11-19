@@ -77,8 +77,17 @@ module.exports = {
             return;
         }// end of states
         this.executionLog(`~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${this.currentStateName} started ~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
-        f(event, this.contextObject, this.contextObject.done);
+        const promis = f(event, this.contextObject, this.contextObject.done);
 
+        if (promis && promis.then) {
+            promis.then((data) => {
+                this.contextObject.done(null, data);
+            }).catch(err => {
+                this.contextObject.done(err);
+            });
+
+            return promis;
+        }
     },
 
     _states(currentState, currentStateName) {
