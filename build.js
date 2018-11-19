@@ -95,10 +95,11 @@ module.exports = {
         case 'Task': // just push task to general array
             //before each task restore global default env variables
             process.env = Object.assign({}, this.environmentVariables);
-            let f = this.variables[currentStateName];
-            f = this.functions[f];
+            const functionN = currentState.Resource.split(':');
+            const functionName = functionN[functionN.length - 1];
+            const f = this.functions[functionName];
             if (!f) {
-                this.cliLog(`Function "${currentStateName}" does not presented in serverless.yml`);
+                this.cliLog(`Function "${currentState}" does not presented in serverless.yml`);
                 process.exit(1);
             }
             const {handler, filePath} = this._findFunctionPathAndHandler(f.handler);

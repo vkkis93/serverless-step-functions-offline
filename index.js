@@ -105,7 +105,8 @@ class StepFunctionsOfflinePlugin {
             return this.eventFile = {};
         }
         try {
-            this.eventFile = require(path.join(process.cwd(), this.eventFile));
+            this.eventFile = path.isAbsolute(this.eventFile) ? require(this.eventFile) :
+                require(path.join(process.cwd(), this.eventFile));
         } catch (err) {
             throw err;
         }
