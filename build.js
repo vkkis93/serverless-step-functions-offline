@@ -6,7 +6,6 @@ const Promise = require('bluebird');
 const enumList = require('./enum');
 
 module.exports = {
-
     // findFunctionsPathAndHandler() {
     //     for (const functionName in this.variables) {
     //         const functionHandler = this.variables[functionName];
