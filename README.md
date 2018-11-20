@@ -7,6 +7,7 @@
 
 
 # serverless-step-functions-offline
+:warning: From v2.1.0 `custom.stepFunctionsOffline` is deprecated :warning:
 
 ## Documentation
 
