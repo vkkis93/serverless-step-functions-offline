@@ -46,7 +46,7 @@ sls step-functions-offline
 
 It should rise an error like that:
 
-> Serverless plugin "serverless-step-functions-offline" initialization errored: Please add ENV_VARIABLES to section "custom"
+> This command requires the --stateMachine option
 
 # Requirements
 This plugin works only with [serverless-step-functions](https://github.com/horike37/serverless-step-functions).
@@ -54,54 +54,6 @@ This plugin works only with [serverless-step-functions](https://github.com/horik
 You must have this plugin installed and correctly specified statemachine definition using Amazon States Language.
 
 Example of statemachine definition you can see [here](https://github.com/horike37/serverless-step-functions#setup).
-
-# Usage
-After all steps are done, need to add to section **custom** in serverless.yml the key **stepFunctionsOffline** with properties *stateName*: name of lambda function.
-
-For example:
-
-```yaml
-service: ServerlessStepPlugin
-frameworkVersion: ">=1.13.0 <2.0.0"
-plugins:
-   - serverless-step-functions-offline
-
-# ...
-
-custom:
-  stepFunctionsOffline:
-    stepOne: firstLambda #(v2.0)
-    # ...
-    # ...
-    stepTwo: secondLambda #(v2.0)
-
-functions:
-    firstLambda:
-        handler: firstLambda/index.handler
-        name: TheFirstLambda
-    secondLambda:
-        handler: secondLambda/index.handler
-        name: TheSecondLambda
-stepFunctions:
-  stateMachines:
-    foo:
-      definition:
-        Comment: "An example of the Amazon States Language using wait states"
-        StartAt: FirstLambda
-        States:
-            FirstLambda:
-              Type: Task
-              Resource: arn:aws:lambda:eu-west-1:123456789:function:TheFirstLambda
-              Next: SecondLambda
-            SecondLambda:
-              Type: Task
-              Resource: arn:aws:lambda:eu-west-1:123456789:function:TheSecondLambda
-              End: true
-```
-
-Where:
-- `StepOne` is the name of step in state machine
-- `firstLambda` is the name of function in section **functions**
 
 # Run Plugin
 ```bash

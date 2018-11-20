@@ -90,7 +90,7 @@ module.exports = {
             // let f = this.variables[currentStateName];
             const f = this.functions[functionName];
             if (!f) {
-                this.cliLog(`Function "${currentState}" does not presented in serverless.yml`);
+                this.cliLog(`Function "${functionName}" does not presented in serverless.yml`);
                 process.exit(1);
             }
             const {handler, filePath} = this._findFunctionPathAndHandler(f.handler);
