@@ -6,7 +6,6 @@ const Promise = require('bluebird');
 const enumList = require('./enum');
 
 module.exports = {
-
     // findFunctionsPathAndHandler() {
     //     for (const functionName in this.variables) {
     //         const functionHandler = this.variables[functionName];
@@ -77,17 +76,8 @@ module.exports = {
             return;
         }// end of states
         this.executionLog(`~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${this.currentStateName} started ~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
-        const promis = f(event, this.contextObject, this.contextObject.done);
+        f(event, this.contextObject, this.contextObject.done);
 
-        if (promis && promis.then) {
-            promis.then((data) => {
-                this.contextObject.done(null, data);
-            }).catch(err => {
-                this.contextObject.done(err);
-            });
-
-            return promis;
-        }
     },
 
     _states(currentState, currentStateName) {
@@ -95,10 +85,12 @@ module.exports = {
         case 'Task': // just push task to general array
             //before each task restore global default env variables
             process.env = Object.assign({}, this.environmentVariables);
-            let f = this.variables[currentStateName];
-            f = this.functions[f];
+            const functionN = currentState.Resource.split(':');
+            const functionName = functionN[functionN.length - 1];
+            // let f = this.variables[currentStateName];
+            const f = this.functions[functionName];
             if (!f) {
-                this.cliLog(`Function "${currentStateName}" does not presented in serverless.yml`);
+                this.cliLog(`Function "${functionName}" does not presented in serverless.yml`);
                 process.exit(1);
             }
             const {handler, filePath} = this._findFunctionPathAndHandler(f.handler);
