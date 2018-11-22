@@ -4,10 +4,8 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/b321644ef368976aee12/maintainability)](https://codeclimate.com/github/vkkis93/serverless-step-functions-offline/maintainability)
 [![NPM](https://nodei.co/npm/serverless-step-functions-offline.png)](https://nodei.co/npm/serverless-step-functions-offline/)
 
-
 # serverless-step-functions-offline
-:warning: From v2.1.0 `custom.stepFunctionsOffline` is deprecated :warning:
-
+:warning: Version 2.0 with breaking changes see [usage](#usage)  :warning:
 ## Documentation
 
 - [Install](#install)
@@ -18,7 +16,6 @@
 - [What does plugin support](#what-does-plugin-support)
 - [Usage with serverless-wepback](#usage-with-serverless-webpack)
 
-If you use it, ⭐️ it!
 
 # Install
 Using NPM:
@@ -46,7 +43,7 @@ sls step-functions-offline
 
 It should rise an error like that:
 
-> This command requires the --stateMachine option
+> Serverless plugin "serverless-step-functions-offline" initialization errored: Please add ENV_VARIABLES to section "custom"
 
 # Requirements
 This plugin works only with [serverless-step-functions](https://github.com/horike37/serverless-step-functions).
@@ -54,6 +51,54 @@ This plugin works only with [serverless-step-functions](https://github.com/horik
 You must have this plugin installed and correctly specified statemachine definition using Amazon States Language.
 
 Example of statemachine definition you can see [here](https://github.com/horike37/serverless-step-functions#setup).
+
+# Usage
+After all steps are done, need to add to section **custom** in serverless.yml the key **stepFunctionsOffline** with properties *stateName*: name of lambda function.
+
+For example:
+
+```yaml
+service: ServerlessStepPlugin
+frameworkVersion: ">=1.13.0 <2.0.0"
+plugins:
+   - serverless-step-functions-offline
+
+# ...
+
+custom:
+  stepFunctionsOffline:
+    stepOne: firstLambda #(v2.0)
+    # ...
+    # ...
+    stepTwo: secondLambda #(v2.0)
+
+functions:
+    firstLambda:
+        handler: firstLambda/index.handler
+        name: TheFirstLambda
+    secondLambda:
+        handler: secondLambda/index.handler
+        name: TheSecondLambda
+stepFunctions:
+  stateMachines:
+    foo:
+      definition:
+        Comment: "An example of the Amazon States Language using wait states"
+        StartAt: FirstLambda
+        States:
+            FirstLambda:
+              Type: Task
+              Resource: arn:aws:lambda:eu-west-1:123456789:function:TheFirstLambda
+              Next: SecondLambda
+            SecondLambda:
+              Type: Task
+              Resource: arn:aws:lambda:eu-west-1:123456789:function:TheSecondLambda
+              End: true
+```
+
+Where:
+- `StepOne` is the name of step in state machine
+- `firstLambda` is the name of function in section **functions**
 
 # Run Plugin
 ```bash
@@ -99,11 +144,6 @@ precedes `serverless-step-functions-offline` as the order is important:
  - [x] Fixing bugs
  - [x] Support Pass, Fail, Succeed
  - [x] Integration with serverless-webpack
- - [ ] Add unit tests - to make plugin stable (next step) 
+ - [ ] Add unit tests - to make plugin stable (next step)
  - [ ] Support fields *Retry*, *Catch*
  - [ ] Support other languages except node.js
-
-
-# License
-
-MIT

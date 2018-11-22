@@ -66,7 +66,10 @@ class StepFunctionsOfflinePlugin {
 
         this._getLocation();
         this._checkVersion();
+        this._checkVariableInYML();
+
     }
+
 
     _getLocation() {
         if (this.options.location) {
@@ -82,6 +85,13 @@ class StepFunctionsOfflinePlugin {
         if (!version.startsWith('1.')) {
             throw new this.serverless.classes.Error(`Serverless step offline requires Serverless v1.x.x but found ${version}`);
         }
+    }
+
+    _checkVariableInYML() {
+        if (!_.has(this.serverless.service, 'custom.stepFunctionsOffline')) {
+            throw new this.serverless.classes.Error('Please add ENV_VARIABLES to section "custom"');
+        }
+        return;
     }
 
     isInstalledPluginSLSStepFunctions() {
