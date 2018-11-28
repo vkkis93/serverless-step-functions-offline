@@ -188,10 +188,7 @@ module.exports = {
 
     _passStateFields(currentState, event) {
         if (!currentState.ResultPath) {
-            if (!currentState.Result) {
-                return event;
-            }
-            return currentState.Result;
+            return currentState.Result || event;
         } else {
             const variableName = currentState.ResultPath.split('$.')[1];
             if (!currentState.Result) {
@@ -209,9 +206,10 @@ module.exports = {
         //look through choice and find appropriate
         _.forEach(data.choice, choice => {
             //check if result from previous function has of value which described in Choice
-            if (!_.isNil(result[choice.variable])) {
+            const functionResultValue = _.get(result, choice.variable);
+            if (!_.isNil(functionResultValue)) {
                 //check condition
-                const isConditionTrue = choice.checkFunction(result[choice.variable], choice.compareWithValue);
+                const isConditionTrue = choice.checkFunction(functionResultValue, choice.compareWithValue);
                 if (isConditionTrue) {
                     existsAnyMatches = true;
                     return this.process(this.states[choice.choiceFunction], choice.choiceFunction, result);
