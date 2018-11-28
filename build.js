@@ -188,19 +188,33 @@ module.exports = {
 
     _passStateFields(currentState, event) {
         if (!currentState.ResultPath) {
-            if (!currentState.Result) {
-                return event;
-            }
-            return currentState.Result;
+            return currentState.Result || event;
         } else {
+            if (!_.isObject(event) && currentState.ResultPath) {
+                const error = `Unable to apply ReferencePath ${currentState.ResultPath} to input ${event}`;
+                throw new this.serverless.classes.Error(error);
+            }
             const variableName = currentState.ResultPath.split('$.')[1];
             if (!currentState.Result) {
-                event[variableName] = event;
+                Object.assign(event, this._constuctObj(variableName, event));
                 return event;
             }
-            event[variableName] = currentState.Result;
+            Object.assign(event, this._constuctObj(variableName, currentState.Result));
             return event;
         }
+    },
+
+    _constuctObj(variableName, initialValue) {
+        // initialValue = _.isObject(initialValue) ? {...initialValue} : initialValue;
+        const arr = variableName.split('.');
+        const result = _.reduceRight(arr, (obj, key) => {
+            obj = {
+                [key]: obj
+            };
+            return obj;
+        }, initialValue);
+        console.log('result', result);
+        return result;
     },
 
     _runChoice(data, result) {
@@ -209,9 +223,10 @@ module.exports = {
         //look through choice and find appropriate
         _.forEach(data.choice, choice => {
             //check if result from previous function has of value which described in Choice
-            if (!_.isNil(result[choice.variable])) {
+            const functionResultValue = _.get(result, choice.variable);
+            if (!_.isNil(functionResultValue)) {
                 //check condition
-                const isConditionTrue = choice.checkFunction(result[choice.variable], choice.compareWithValue);
+                const isConditionTrue = choice.checkFunction(functionResultValue, choice.compareWithValue);
                 if (isConditionTrue) {
                     existsAnyMatches = true;
                     return this.process(this.states[choice.choiceFunction], choice.choiceFunction, result);
