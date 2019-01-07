@@ -3,15 +3,36 @@ const Promise = require('bluebird');
 const path = require('path');
 
 module.exports = {
-    yamlParse() {
+    getRawConfig() {
         const serverlessPath = this.serverless.config.servicePath;
         if (!serverlessPath) {
             throw new this.serverless
-                .classes.Error('Could not find serverless.yml');
+                .classes.Error('Could not find serverless manifest');
         }
-        const serverlessYmlPath = path.join(serverlessPath, 'serverless.yml');
-        return this.serverless.yamlParser
-            .parse(serverlessYmlPath)
+
+        const manifestFilenames = [
+            'serverless.yaml',
+            'serverless.yml',
+            'serverless.json',
+            'serverless.js',
+        ];
+
+        const manifestFilename = manifestFilenames.map((filename) => path.join(serverlessPath, filename))
+            .find((filename) => this.serverless.utils.fileExistsSync(filename));
+
+        if (!manifestFilename) {
+            throw new this.serverless.classes.Error('Could not find serverless manifest');
+        }
+
+        if (/\.json|\.js$/.test(manifestFilename)) {
+            return Promise.resolve(require(manifestFilename));
+        }
+
+        return this.serverless.yamlParser.parse(manifestFilename);
+    },
+
+    parseConfig() {
+        return this.getRawConfig()
             .then((serverlessFileParam) => {
                 this.serverless.service.stepFunctions = {};
                 this.serverless.service.stepFunctions.stateMachines
