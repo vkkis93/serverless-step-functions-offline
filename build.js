@@ -88,7 +88,7 @@ module.exports = {
             let f = this.variables[currentStateName];
             f = this.functions[f];
             if (!f) {
-                this.cliLog(`Function "${currentStateName}" does not presented in serverless.yml`);
+                this.cliLog(`Function "${currentStateName}" does not presented in serverless manifest`);
                 process.exit(1);
             }
             const {handler, filePath} = this._findFunctionPathAndHandler(f.handler);
@@ -245,7 +245,7 @@ module.exports = {
             const timestampPath = waitField['TimestampPath'].split('$.')[1];
             if (!event[timestampPath]) {
                 const error =
-                    `An error occurred while executing the state ${currentStateName}. 
+                    `An error occurred while executing the state ${currentStateName}.
                      The TimestampPath parameter does not reference an input value: ${waitField['TimestampPath']}`;
                 throw new this.serverless.classes.Error(error);
             }
@@ -258,7 +258,7 @@ module.exports = {
             const waitSeconds = event[secondsPath];
             if (!waitSeconds) {
                 const error = `
-                    An error occurred while executing the state ${currentStateName}. 
+                    An error occurred while executing the state ${currentStateName}.
                     The TimestampPath parameter does not reference an input value: ${waitField['SecondsPath']}`;
                 throw new this.serverless.classes.Error(error);
             }

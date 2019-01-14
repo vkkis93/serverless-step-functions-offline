@@ -126,7 +126,7 @@ describe('index.js', () => {
     describe('#findState', () => {
         it('should throw err - serverless.yml not exists', () => {
             // stepFunctionsOfflinePlugin.serverless.config = process.cwd() + '/serverless.test.yml';
-            expect(stepFunctionsOfflinePlugin.hooks[hooks.findState]).to.throw('Could not find serverless.yml');
+            expect(stepFunctionsOfflinePlugin.hooks[hooks.findState]).to.throw('Could not find serverless manifest');
         });
 
 
