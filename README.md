@@ -67,10 +67,10 @@ plugins:
 
 custom:
   stepFunctionsOffline:
-    stepOne: firstLambda #(v2.0)
+    FirstLambda: firstLambda #(v2.0)
     # ...
     # ...
-    stepTwo: secondLambda #(v2.0)
+    SecondLambda: secondLambda #(v2.0)
 
 functions:
     firstLambda:
@@ -97,7 +97,7 @@ stepFunctions:
 ```
 
 Where:
-- `StepOne` is the name of step in state machine
+- `FirstLambda` is the name of step in state machine
 - `firstLambda` is the name of function in section **functions**
 
 # Run Plugin
