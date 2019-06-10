@@ -71,16 +71,23 @@ module.exports = {
         }// end of states
         this.executionLog(`~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${this.currentStateName} started ~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
         return new Promise((resolve, reject) => {
-            f(event, this.contextObject, (err, data) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    this.contextObject.done(err, data).then(() => resolve());
-                }
-            });
+            _callF(f, event, resolve, reject);
         });
+    },
 
-
+    async _callF(f, event, resolve, reject) {
+        let called = false;
+        let result = await f(event, this.contextObject, (err, data) => {
+            called = true;
+              if (err) {
+                  reject(err);
+              } else {
+                  this.contextObject.done(err, data).then(() => resolve());
+              }
+          });
+        if (!called) {
+            this.contextObject.done(null, result).then(() => resolve());
+        }
     },
 
     _states(currentState, currentStateName) {
