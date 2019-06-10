@@ -71,7 +71,7 @@ module.exports = {
         }// end of states
         this.executionLog(`~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${this.currentStateName} started ~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
         return new Promise((resolve, reject) => {
-            _callF(f, event, resolve, reject);
+            this._callF(f, event, resolve, reject);
         });
     },
 
