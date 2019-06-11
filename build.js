@@ -210,25 +210,27 @@ module.exports = {
         }
     },
 
-    async _runChoice(data, result) {
+    async _runChoice(data, event) {
         let existsAnyMatches = false;
 
         //look through choice and find appropriate
-        _.forEach(data.choice, choice => {
+        for (let i = 0; i < data.choice.length; i++) {
+            const choice = data.choice[i];
             //check if result from previous function has of value which described in Choice
-            const functionResultValue = _.get(result, choice.variable);
+            const functionResultValue = _.get(event, choice.variable);
             if (!_.isNil(functionResultValue)) {
                 //check condition
                 const isConditionTrue = choice.checkFunction(functionResultValue, choice.compareWithValue);
                 if (isConditionTrue) {
                     existsAnyMatches = true;
-                    return this.process(this.states[choice.choiceFunction], choice.choiceFunction, result);
+                    return this.process(this.states[choice.choiceFunction], choice.choiceFunction, event);
                 }
             }
-        });
+        }
+
         if (!existsAnyMatches && data.defaultFunction) {
             const fName = data.defaultFunction;
-            return this.process(this.states[fName], fName, result);
+            return this.process(this.states[fName], fName, event);
         }
     },
 
