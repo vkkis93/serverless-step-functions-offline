@@ -74,6 +74,7 @@ module.exports = {
   },
 
   _states(currentState, currentStateName, States) {
+    if (!currentState) currentState = { Type: 'Pass' }
     switch (currentState.Type) {
       case 'Task': // just push task to general array
         //before each task restore global default env variables
