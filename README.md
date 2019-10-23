@@ -67,10 +67,10 @@ plugins:
 
 custom:
   stepFunctionsOffline:
-    stepOne: firstLambda #(v2.0)
+    FirstLambda: firstLambda #(v2.0)
     # ...
     # ...
-    stepTwo: secondLambda #(v2.0)
+    SecondLambda: secondLambda #(v2.0)
 
 functions:
     firstLambda:
