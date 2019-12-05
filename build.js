@@ -71,13 +71,12 @@ module.exports = {
         return this._states(currentState, currentStateName);
     },
 
-    _run(f, event) {
+    async _run(f, event) {
         if (!f) {
             return;
         }// end of states
         this.executionLog(`~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${this.currentStateName} started ~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
-        f(event, this.contextObject, this.contextObject.done);
-
+        return f(event, this.contextObject, this.contextObject.done);
     },
 
     _states(currentState, currentStateName) {
