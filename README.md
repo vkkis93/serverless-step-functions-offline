@@ -97,7 +97,7 @@ stepFunctions:
 ```
 
 Where:
-- `StepOne` is the name of step in state machine
+- `FirstLambda` is the name of step in state machine
 - `firstLambda` is the name of function in section **functions**
 
 # Run Plugin
