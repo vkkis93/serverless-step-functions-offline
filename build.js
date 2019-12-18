@@ -86,7 +86,17 @@ module.exports = {
             //before each task restore global default env variables
             process.env = Object.assign({}, this.environmentVariables);
             let f = this.variables[currentStateName];
-            f = this.functions[f];
+
+            if (Array.isArray(this.functions) && this.functions.length > 0) {
+                let functions = {};
+                this.functions.forEach((fns) => {
+                    functions = Object.assign(functions, fns);
+                });
+                f = functions[f];
+            } else {
+                f = this.functions[f];
+            }
+
             if (!f) {
                 this.cliLog(`Function "${currentStateName}" does not presented in serverless manifest`);
                 process.exit(1);
