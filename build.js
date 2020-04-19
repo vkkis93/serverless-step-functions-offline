@@ -243,7 +243,7 @@ module.exports = {
             break;
         case 'TimestampPath':
             const timestampPath = waitField['TimestampPath'].split('$.')[1];
-            if (!event[timestampPath]) {
+            if (event[timestampPath] == undefined) {
                 const error =
                     `An error occurred while executing the state ${currentStateName}.
                      The TimestampPath parameter does not reference an input value: ${waitField['TimestampPath']}`;
@@ -256,10 +256,10 @@ module.exports = {
         case 'SecondsPath':
             const secondsPath = waitField['SecondsPath'].split('$.')[1];
             const waitSeconds = event[secondsPath];
-            if (!waitSeconds) {
+            if (waitSeconds == undefined) {
                 const error = `
                     An error occurred while executing the state ${currentStateName}.
-                    The TimestampPath parameter does not reference an input value: ${waitField['SecondsPath']}`;
+                    The SecondsPath parameter does not reference an input value: ${waitField['SecondsPath']}`;
                 throw new this.serverless.classes.Error(error);
             }
             waitTimer = waitSeconds;
