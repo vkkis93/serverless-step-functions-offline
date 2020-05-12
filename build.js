@@ -47,7 +47,7 @@ module.exports = {
         const data = this._findStep(state, stateName);
         // if (data instanceof Promise) return Promise.resolve();
         if (!data || data instanceof Promise) {
-            if (!state || state.Type !== 'Parallel') {
+            if ((!state || state.Type !== 'Parallel') && !this.mapResults) {
                 this.cliLog('Serverless step function offline: Finished');
             }
             return Promise.resolve();
@@ -82,6 +82,44 @@ module.exports = {
 
     _states(currentState, currentStateName) {
         switch (currentState.Type) {
+        case 'Map':
+            return {
+                f: (event) => {
+                    const mapItems = _.get(event, currentState.ItemsPath.replace(/^\$\./, ''));
+                    this.mapResults = [];
+
+                    _.forEach(mapItems, (item, index) => {
+                        const parseValue = value => {
+                            if (value === '$$.Map.Item.Value') {
+                                return item;
+                            }
+
+                            if (/^\$\./.test(value)) {
+                                return _.get(event, value.replace(/^\$\./, ''));
+                            }
+                        };
+
+                        const params = Object.keys(currentState.Parameters).reduce((acc, key) => {
+                            if (/\.\$$/.test(key)) {
+                                acc[key.replace(/\.\$$/, '')] = parseValue(currentState.Parameters[key]);
+                            }
+
+                            return acc;
+                        }, {});
+
+                        return this.process(currentState.Iterator.States[currentState.Iterator.StartAt], currentState.Iterator.StartAt, params);
+                    });
+
+                    if (currentState.ResultPath) {
+                        _.set(event, currentState.ResultPath.replace(/\$\./, ''), this.mapResults);
+                    }
+
+                    delete this.mapResults;
+
+                    this.process(this.states[currentState.Next], currentState.Next, event);
+                }
+            };
+
         case 'Task': // just push task to general array
             //before each task restore global default env variables
             process.env = Object.assign({}, this.environmentVariables);
@@ -280,6 +318,11 @@ module.exports = {
                 state = this.parallelBranch.States;
                 if (!this.currentState.Next) this.eventParallelResult.push(result); //it means the end of execution of branch
             }
+
+            if (this.mapResults) {
+                this.mapResults.push(result);
+            }
+
             this.process(state[this.currentState.Next], this.currentState.Next, result);
             // return resolve();
             // });
