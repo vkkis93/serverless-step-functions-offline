@@ -119,6 +119,7 @@ By default `process.env.STEP_IS_OFFLINE = true`.
 | ***Choice*** | All comparison operators except: *And*, *Not*, *Or* |
 | ***Wait***  | All following fields: *Seconds*, *SecondsPath*, *Timestamp*, *TimestampPath* |
 | ***Parallel*** |  Only *Branches* |
+| ***Map*** | Supports *Iterator* and the following fields: *ItemsPath*, *ResultsPath*, *Parameters* |
 | ***Pass*** | Result, ResultPath |
 | ***Fail***| Cause, Error|
 | ***Succeed***| |
