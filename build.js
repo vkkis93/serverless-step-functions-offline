@@ -28,7 +28,7 @@ module.exports = {
 
     buildStepWorkFlow() {
         this.cliLog('Building StepWorkFlow');
-        this.contextObject = this.createContextObject();
+        this.contextObject = this.createContextObject(this.stateDefinition.States);
         this.states = this.stateDefinition.States;
 
         return Promise.resolve()
@@ -40,11 +40,24 @@ module.exports = {
             });
     },
 
+    buildSubStepWorkFlow(stateDefinition, event) {
+        this.cliLog('Building Iterator StepWorkFlow');
+        this.subContextObject = this.createContextObject(stateDefinition.States);
+        this.subStates = stateDefinition.States;
+
+        return Promise.resolve()
+            .then(() => this.process(this.subStates[stateDefinition.StartAt], stateDefinition.StartAt, event))
+            .catch(err => {
+                throw err;
+            });
+    },
+
     process(state, stateName, event) {
         if (state && state.Type === 'Parallel') {
             this.eventForParallelExecution = event;
         }
         const data = this._findStep(state, stateName);
+
         // if (data instanceof Promise) return Promise.resolve();
         if (!data || data instanceof Promise) {
             if ((!state || state.Type !== 'Parallel') && !this.mapResults) {
@@ -76,48 +89,61 @@ module.exports = {
             return;
         }// end of states
         this.executionLog(`~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${this.currentStateName} started ~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
-        f(event, this.contextObject, this.contextObject.done);
 
+        const contextObject = this.subContextObject || this.contextObject;
+        return f(event, contextObject, contextObject.done);
     },
 
     _states(currentState, currentStateName) {
         switch (currentState.Type) {
         case 'Map':
             return {
-                f: (event) => {
-                    const mapItems = _.get(event, currentState.ItemsPath.replace(/^\$\./, ''));
+                f: event => {
+                    const mapItems = _.clone(_.get(event, currentState.ItemsPath.replace(/^\$\./, '')));
                     this.mapResults = [];
 
-                    _.forEach(mapItems, (item, index) => {
-                        const parseValue = value => {
-                            if (value === '$$.Map.Item.Value') {
-                                return item;
-                            }
+                    const processNextItem = () => {
+                        const item = mapItems.shift();
 
-                            if (/^\$\./.test(value)) {
-                                return _.get(event, value.replace(/^\$\./, ''));
-                            }
-                        };
+                        if (item) {
+                            const parseValue = value => {
+                                if (value === '$$.Map.Item.Value') {
+                                    return item;
+                                }
 
-                        const params = Object.keys(currentState.Parameters).reduce((acc, key) => {
-                            if (/\.\$$/.test(key)) {
-                                acc[key.replace(/\.\$$/, '')] = parseValue(currentState.Parameters[key]);
-                            }
+                                if (/^\$\./.test(value)) {
+                                    return _.get(event, value.replace(/^\$\./, ''));
+                                }
+                            };
 
-                            return acc;
-                        }, {});
+                            const params = Object.keys(currentState.Parameters).reduce((acc, key) => {
+                                if (/\.\$$/.test(key)) {
+                                    acc[key.replace(/\.\$$/, '')] = parseValue(currentState.Parameters[key]);
+                                }
 
-                        return this.process(currentState.Iterator.States[currentState.Iterator.StartAt], currentState.Iterator.StartAt, params);
+                                return acc;
+                            }, {});
+
+                            return this.buildSubStepWorkFlow(currentState.Iterator, params)
+                                .then(() => processNextItem());
+                        }
+
+                        return Promise.resolve();
+                    };
+
+                    processNextItem().then(() => {
+                        this.subContextObject = null;
+                        this.subStates = null;
+
+                        if (currentState.ResultPath) {
+                            _.set(event, currentState.ResultPath.replace(/\$\./, ''), this.mapResults);
+                        }
+
+                        delete this.mapResults;
+
+                        return this.process(this.states[currentState.Next], currentState.Next, event);
                     });
-
-                    if (currentState.ResultPath) {
-                        _.set(event, currentState.ResultPath.replace(/\$\./, ''), this.mapResults);
-                    }
-
-                    delete this.mapResults;
-
-                    this.process(this.states[currentState.Next], currentState.Next, event);
-                }
+                },
             };
 
         case 'Task': // just push task to general array
@@ -306,20 +332,20 @@ module.exports = {
         return waitTimer;
     },
 
-    createContextObject() {
+    createContextObject(states) {
         const cb = (err, result) => {
             // return new Promise((resolve, reject) => {
             if (err) {
                 throw `Error in function "${this.currentStateName}": ${JSON.stringify(err)}`;
             }
             this.executionLog(`~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${this.currentStateName} finished ~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
-            let state = this.states;
+            let state = states;
             if (this.parallelBranch && this.parallelBranch.States) {
                 state = this.parallelBranch.States;
                 if (!this.currentState.Next) this.eventParallelResult.push(result); //it means the end of execution of branch
             }
 
-            if (this.mapResults) {
+            if (this.mapResults && !this.currentState.Next) {
                 this.mapResults.push(result);
             }
 
