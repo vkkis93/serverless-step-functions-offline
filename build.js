@@ -6,89 +6,159 @@ const Promise = require('bluebird');
 const enumList = require('./enum');
 
 module.exports = {
-    // findFunctionsPathAndHandler() {
-    //     for (const functionName in this.variables) {
-    //         const functionHandler = this.variables[functionName];
-    //         const {handler, filePath} = this._findFunctionPathAndHandler(functionHandler);
-    //
-    //         this.variables[functionName] = {handler, filePath};
-    //     }
-    //     console.log('this.va', this.variables)
-    // },
-    //
     _findFunctionPathAndHandler(functionHandler) {
         const dir = path.dirname(functionHandler);
         const handler = path.basename(functionHandler);
         const splitHandler = handler.split('.');
         const filePath = `${dir}/${splitHandler[0]}.js`;
         const handlerName = `${splitHandler[1]}`;
-
-        return {handler: handlerName, filePath};
+    
+        return { handler: handlerName, filePath };
     },
 
     buildStepWorkFlow() {
         this.cliLog('Building StepWorkFlow');
-        this.contextObject = this.createContextObject();
         this.states = this.stateDefinition.States;
 
-        return Promise.resolve()
-            .then(() => this.process(this.states[this.stateDefinition.StartAt], this.stateDefinition.StartAt, this.eventFile))
-            .catch(err => {
-                // console.log('OOPS', err.stack);
-                // this.cliLog(err);
-                throw err;
-            });
+        return this.process(this.states[this.stateDefinition.StartAt], this.stateDefinition.StartAt, this.eventFile, this.states);
     },
 
-    process(state, stateName, event) {
-        if (state && state.Type === 'Parallel') {
-            this.eventForParallelExecution = event;
+    buildSubStepWorkFlow(stateDefinition, event) {
+        this.cliLog('Building Iterator StepWorkFlow');
+        this.subContextObject = this.createContextObject(stateDefinition.States);
+        this.subStates = stateDefinition.States;
+        return this.process(this.subStates[stateDefinition.StartAt], stateDefinition.StartAt, event, this.states);
+    },
+
+    async process(state, stateName, event, states) {
+        const data = await this._states(state, stateName, states);
+        if (data.choice) {
+          return this._runChoice(data, event, states);
+        } else if (data.branches) {
+          const branches = [];
+          for (const branch of data.branches) {
+            branches.push(this.process(branch.States[branch.StartAt], branch.StartAt, event, branch.States));
+          }
+          const results = await Promise.all(branches);
+          return this.process(states[state.Next], state.Next, results, states);
+        } else if (data.f) {
+          return this._run(data.f(event), event, data.context, stateName);
+        } else{
+            return Promise.resolve()
         }
-        const data = this._findStep(state, stateName);
-        // if (data instanceof Promise) return Promise.resolve();
-        if (!data || data instanceof Promise) {
-            if (!state || state.Type !== 'Parallel') {
-                this.cliLog('Serverless step function offline: Finished');
-            }
+    },
+
+    async _run(f, event, context, stateName) {
+        if (!f) {
             return Promise.resolve();
         }
-        if (data.choice) {
-            return this._runChoice(data, event);
-        } else {
-            return this._run(data.f(event), event);
+
+        this.executionLog(`~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${stateName} started ~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
+        return new Promise((resolve, reject) => {
+            this._callF(f, event, resolve, reject, context);
+        });
+    },
+    
+    async _callF(f, event, resolve, reject, context) {
+        let called = false;
+        const callback = (err, data) => {
+            called = true;
+            if (err) {
+                reject(err);
+            } else if (context) {
+                context.done(err, data).then(() => resolve(data));
+              } else {
+                resolve(data);
+              }
+        };
+
+        let result = await f(event, {
+            cb: callback,
+            done: callback,
+            succeed: (result) => callback(null, result),
+            fail: (err) => callback(err),
+        }, callback);
+
+        if (!called) {
+            context.done(null, result).then(() => resolve(result));
         }
     },
 
-    _findStep(currentState, currentStateName) {
-        // it means end of states
-        if (!currentState) {
-            this.currentState = null;
-            this.currentStateName = null;
-            return;
-        }
-        this.currentState = currentState;
-        this.currentStateName = currentStateName;
-        return this._states(currentState, currentStateName);
-    },
+    async _states(currentState, currentStateName, States) {
+        if (!currentState) currentState = { Type: 'Pass' }
 
-    _run(f, event) {
-        if (!f) {
-            return;
-        }// end of states
-        this.executionLog(`~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${this.currentStateName} started ~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
-        f(event, this.contextObject, this.contextObject.done);
-
-    },
-
-    _states(currentState, currentStateName) {
         switch (currentState.Type) {
+        case 'Map':
+            return {
+                name: currentStateName,
+                context: this.createContextObject(currentState.Next, States, currentStateName),
+                f: (event) => {
+                    const mapItems = _.clone(_.get(event, currentState.ItemsPath.replace(/^\$\./, '')));
+
+                    this.mapResults = [];
+                    const processNextItem = () => {
+                        const item = mapItems.shift();
+                        if (item) {
+
+                            const parseValue = value => {
+                                if (value === '$$.Map.Item.Value') {
+                                    return item;
+                                }
+
+                                if (/^\$\./.test(value)) {
+                                    return _.get(event, value.replace(/^\$\./, ''));
+                                }
+                            };
+
+                            const buildParams = (parameters) => {
+                                return Object.keys(parameters).reduce((acc, key) => {
+                                    if (/\.\$$/.test(key)) {
+                                        acc[key.replace(/\.\$$/, '')] = parseValue(parameters[key]);
+                                    }
+                                    return acc;
+                                }, {});
+                            };
+
+
+                            const params = Array.isArray(currentState.Parameters)
+                                ? currentState.Parameters.map(parameters => buildParams(parameters))
+                                : buildParams(currentState.Parameters);
+                            return this.buildSubStepWorkFlow(currentState.Iterator, params)
+                                .then(() => {
+                                    return processNextItem()
+                                } );
+                        }
+
+                        return Promise.resolve()
+                    };
+                    
+                
+                    
+                    return (arg1, arg2, cb) => {
+                        return processNextItem().then(() => {                   
+                            this.subContextObject = null;
+                            this.subStates = null;
+    
+                            if (currentState.ResultPath) {
+                                _.set(event, currentState.ResultPath.replace(/\$\./, ''), this.mapResults);
+                            }
+    
+                            delete this.mapResults;
+                            this.cliLog('!!! Map Iterator Pass State !!!');
+                            cb(null, this.mapResults );
+                        }).catch((error) => {
+                            cb(error, null);
+                        } )
+                    };
+                },
+            };
         case 'Task': // just push task to general array
             //before each task restore global default env variables
             process.env = Object.assign({}, this.environmentVariables);
             let f = this.variables[currentStateName];
             f = this.functions[f];
             if (!f) {
-                this.cliLog(`Function "${currentStateName}" does not presented in serverless manifest`);
+                this.cliLog(`Function "${currentStateName}" does not presented in serverless.yml`);
                 process.exit(1);
             }
             const {handler, filePath} = this._findFunctionPathAndHandler(f.handler);
@@ -96,20 +166,17 @@ module.exports = {
             if (f.environment) {
                 process.env = _.extend(process.env, f.environment);
             }
+
             return {
                 name: currentStateName,
-                f: () => require(path.join(this.location, filePath))[handler]
+                f: () => require(path.join(this.location, filePath))[handler],
+                context: this.createContextObject(currentState.Next, States, currentStateName),
             };
         case 'Parallel': // look through branches and push all of them
-            this.eventParallelResult = [];
-            _.forEach(currentState.Branches, (branch) => {
-                this.parallelBranch = branch;
-                return this.process(branch.States[branch.StartAt], branch.StartAt, this.eventForParallelExecution);
-            });
-            this.process(this.states[currentState.Next], currentState.Next, this.eventParallelResult);
-            delete this.parallelBranch;
-            delete this.eventParallelResult;
-            return;
+            return {
+                branches: currentState.Branches,
+                next: currentState.Next
+            };
         case 'Choice':
             //push all choices. but need to store information like
             // 1) on which variable need to look: ${variable}
@@ -200,25 +267,28 @@ module.exports = {
         }
     },
 
-    _runChoice(data, result) {
+    async _runChoice(data, event, states) {
         let existsAnyMatches = false;
 
         //look through choice and find appropriate
-        _.forEach(data.choice, choice => {
+        for (let i = 0; i < data.choice.length; i++) {
+            const choice = data.choice[i];
             //check if result from previous function has of value which described in Choice
-            const functionResultValue = _.get(result, choice.variable);
+            const functionResultValue = _.get(event, choice.variable);
+
             if (!_.isNil(functionResultValue)) {
                 //check condition
                 const isConditionTrue = choice.checkFunction(functionResultValue, choice.compareWithValue);
                 if (isConditionTrue) {
                     existsAnyMatches = true;
-                    return this.process(this.states[choice.choiceFunction], choice.choiceFunction, result);
+                    return this.process(states[choice.choiceFunction], choice.choiceFunction, event, states);
                 }
             }
-        });
+        };
+
         if (!existsAnyMatches && data.defaultFunction) {
             const fName = data.defaultFunction;
-            return this.process(this.states[fName], fName, result);
+            return this.process(states[fName], fName, event, states);
         }
     },
 
@@ -268,29 +338,21 @@ module.exports = {
         return waitTimer;
     },
 
-    createContextObject() {
+    createContextObject(Next, States, Finished) {
         const cb = (err, result) => {
-            // return new Promise((resolve, reject) => {
             if (err) {
                 throw `Error in function "${this.currentStateName}": ${JSON.stringify(err)}`;
             }
-            this.executionLog(`~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${this.currentStateName} finished ~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
-            let state = this.states;
-            if (this.parallelBranch && this.parallelBranch.States) {
-                state = this.parallelBranch.States;
-                if (!this.currentState.Next) this.eventParallelResult.push(result); //it means the end of execution of branch
+            this.executionLog(`~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${Finished} finished ~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
+            
+            if (this.mapResults && (this.currentState && !this.currentState.Next)) {
+                this.mapResults.push(result);
             }
-            this.process(state[this.currentState.Next], this.currentState.Next, result);
-            // return resolve();
-            // });
+
+            return this.process(States[Next], Next, result, States);
         };
 
-        return {
-            cb: cb,
-            done: cb,
-            succeed: (result) => cb(null, result),
-            fail: (err) => cb(err)
-        };
+        return { done: cb };
 
     },
 
