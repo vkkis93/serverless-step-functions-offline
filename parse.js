@@ -1,6 +1,7 @@
 'use strict';
 const Promise = require('bluebird');
 const path = require('path');
+const _ = require('lodash')
 
 module.exports = {
     getRawConfig() {
@@ -55,6 +56,8 @@ module.exports = {
                         || (this.serverless.service.provider && this.serverless.service.provider.region)
                         || 'us-east-1';
                 }
+
+                this.serverless.runtime = _.get(serverlessFileParam, ['provider', 'runtime']) || "nodejs12.x"
 
                 this.serverless.variables.populateService(this.serverless.pluginManager.cliOptions);
                 return Promise.resolve();

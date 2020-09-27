@@ -1,35 +1,67 @@
 {
-  "name": "serverless-step-functions-offline",
-  "version": "2.1.3",
-  "description": "Serverlesss plugin to support step function offline",
-  "main": "index.js",
-  "author": "viktor.kis <vkkis1993@gmail.com>",
+  "_args": [
+    [
+      "serverless-step-functions-offline@2.1.4",
+      "C:\\Users\\ryanolee\\projects\\sync-pager-duty"
+    ]
+  ],
+  "_development": true,
+  "_from": "serverless-step-functions-offline@2.1.4",
+  "_id": "serverless-step-functions-offline@2.1.4",
+  "_inBundle": false,
+  "_integrity": "sha512-7Iq/W7tCvGZ+jHdYtPnZPVxvgS9Y02gx/iPCmmvhDgekJdJh48JCID0eP9w/MsHhZHLSKiVRQKLTnsdo2hvzDQ==",
+  "_location": "/serverless-step-functions-offline",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "version",
+    "registry": true,
+    "raw": "serverless-step-functions-offline@2.1.4",
+    "name": "serverless-step-functions-offline",
+    "escapedName": "serverless-step-functions-offline",
+    "rawSpec": "2.1.4",
+    "saveSpec": null,
+    "fetchSpec": "2.1.4"
+  },
+  "_requiredBy": [
+    "#DEV:/"
+  ],
+  "_resolved": "https://registry.npmjs.org/serverless-step-functions-offline/-/serverless-step-functions-offline-2.1.4.tgz",
+  "_spec": "2.1.4",
+  "_where": "C:\\Users\\ryanolee\\projects\\sync-pager-duty",
+  "author": {
+    "name": "viktor.kis",
+    "email": "vkkis1993@gmail.com"
+  },
   "bugs": {
     "url": "https://github.com/vkkis93/serverless-step-functions-offline/issues"
-  },
-  "homepage": "https://github.com/vkkis93/serverless-step-functions-offline#readme",
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:vkkis93/serverless-step-functions-offline.git"
-  },
-  "scripts": {
-    "test": "nyc ./node_modules/mocha/bin/mocha  ./tests/index.test.js './tests/!(index).test.js'",
-    "lint": "eslint ./**  --ext .js"
   },
   "dependencies": {
     "bluebird": "^3.5.1",
     "lodash": "^4.17.15",
-    "moment": "^2.20.1"
+    "moment": "^2.20.1",
+    "shell-escape": "^0.2.0"
   },
+  "description": "Serverlesss plugin to support step function offline",
   "devDependencies": {
-    "eslint": "4.17.11",
     "chai": "^4.1.2",
+    "eslint": "^6.6.0",
     "mocha": "^5.0.0",
     "nyc": "^11.4.1",
     "pre-commit": "^1.1.3",
     "serverless": "^1.25.0",
     "sinon": "^4.2.1"
   },
+  "homepage": "https://github.com/vkkis93/serverless-step-functions-offline#readme",
+  "keywords": [
+    "aws",
+    "lambda",
+    "serverless",
+    "step functions",
+    "serverless-step-functions-offline"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "name": "serverless-step-functions-offline",
   "nyc": {
     "include": [
       "*.js"
@@ -38,12 +70,13 @@
   "pre-commit": [
     "lint"
   ],
-  "keywords": [
-    "aws",
-    "lambda",
-    "serverless",
-    "step functions",
-    "serverless-step-functions-offline"
-  ],
-  "license": "MIT"
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/vkkis93/serverless-step-functions-offline.git"
+  },
+  "scripts": {
+    "lint": "eslint '**/*.{js,jsx}' --quiet",
+    "test": "node node_modules/mocha/bin/mocha ./tests/index.test.js './tests/!(index).test.js'"
+  },
+  "version": "2.1.4"
 }
