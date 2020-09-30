@@ -3,14 +3,16 @@
  */
 class BaseRuntime {
     /**
+     * @param {obj} functionDefinition The Function definition used for the handler
+     * @param {obj} serverless Reference to the serverless object
      * @param {string} location The root location of the application
-     * @param {string} handlerPath The path given by the handler so that certain parts can be ececuted in order
-     * @param {obj} environment The context to execute the function in
+     * @param {string} handlerName The name of the handler to try to invoke
      */
-    constructor(location, handlerPath, environment){
+    constructor(functionDefinition, serverless, location, handlerName){
         this.location = location
-        this.handlerPath = handlerPath
-        this.environment = environment
+        this.functionDefinition = functionDefinition
+        this.serverless = serverless
+        this.handlerName = handlerName
     }
 
     /**

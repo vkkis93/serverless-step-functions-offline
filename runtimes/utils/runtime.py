@@ -1,62 +1,92 @@
-# Python executable wrapper for executing step functions in python (Requires python3.5+)
+import sys
+import subprocess
 import argparse
 import json
-import importlib.util
-import os
-import sys
-import base64
+import logging
+from time import strftime, time
+from importlib import import_module
 
+class FakeLambdaContext(object):
+    def __init__(self, name='Fake', version='LATEST', timeout=6, **kwargs):
+        self.name = name
+        self.version = version
+        self.created = time()
+        self.timeout = timeout
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
-def main():
-    parser = argparse.ArgumentParser(
-        description='Serverless transport layer from JS to python')
+    def get_remaining_time_in_millis(self):
+        return int(max((self.timeout * 1000) - (int(round(time() * 1000)) - int(round(self.created * 1000))), 0))
 
-    parser.add_argument('--location', help='Location to pass (Base 64 encoded)')
-    parser.add_argument('--handler', help='Hanler string to pass (Base 64 encoded)')
-    parser.add_argument('--environment', default={}, help='Env to pass (Base 64 encoded)')
-    parser.add_argument('--event', help='Event Var To Pass (Base 64 encoded)')
-    parser.add_argument('--context', help='Context Var To Pass (Base 64 encoded)')
+    @property
+    def function_name(self):
+        return self.name
 
-    args = parser.parse_args()
+    @property
+    def function_version(self):
+        return self.version
 
-    #Decode all base64 encoded args
-    args = {key: base64.b64decode(value).decode() for (key, value) in vars(args).items() }
-    print(args)
-    # Setup file context to look to right place
-    os.chdir(args['location'])
+    @property
+    def invoked_function_arn(self):
+        return 'arn:aws:lambda:serverless:' + self.name
 
-    # Load environment from context given by parent
-    env = json.loads(args['environment'])
-    os.environ = {**os.environ, **env}
+    @property
+    def memory_limit_in_mb(self):
+        return '1024'
 
-    # Load handler into script context
-    parts = args['handler'].split('.', 1)
-    
-    module_path = parts[0]
-    module_function = parts[1]
+    @property
+    def aws_request_id(self):
+        return '1234567890'
 
-    module_file = os.path.join(args['location'], f"{module_path}.py")
+    @property
+    def log_group_name(self):
+        return '/aws/lambda/' + self.name
 
-    if not os.path.isfile(module_file):
-        raise FileNotFoundError(f"Unable to find handler at: {module_file}")
-    
-    # Build context for module
-    spec = importlib.util.spec_from_file_location("module.name", module_file)
-    handler = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(handler)
+    @property
+    def log_stream_name(self):
+        return strftime('%Y/%m/%d') +'/[$' + self.version + ']58419525dade4d17a495dceeeed44708'
 
-    # Pull in handler func
-    handler_func = getattr(spec, module_function)
+    @property
+    def log(self):
+        return sys.stdout.write
 
-    event = json.loads(args['event'])
-    context = json.loads(args['context'])
+logging.basicConfig()
 
-    res = handler_func(event, context)
+parser = argparse.ArgumentParser(
+    prog='invoke',
+    description='Runs a Lambda entry point (handler) with an optional event',
+)
 
-    sys.stdout.write(json.dumps(res))
-    sys.stdout.flush()
+parser.add_argument('handler_path',
+                    help=('Path to the module containing the handler function,'
+                          ' omitting ".py". IE: "path/to/module"'))
+
+parser.add_argument('handler_name', help='Name of the handler function')
 
 if __name__ == '__main__':
-    main()
-else:
-    raise ImportError('Runtime cannot be executed as module!')
+    args = parser.parse_args()
+
+    # this is needed because you need to import from where you've executed sls
+    sys.path.append('.')
+
+    module = import_module(args.handler_path.replace('/', '.'))
+    handler = getattr(module, args.handler_name)
+
+    input = json.load(sys.stdin)
+    if sys.platform != 'win32':
+        try:
+            if sys.platform != 'darwin':
+                subprocess.check_call('tty', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        except (OSError, subprocess.CalledProcessError):
+            pass
+        else:
+            sys.stdin = open('/dev/tty')
+
+    context = FakeLambdaContext(**input.get('context', {}))
+    
+    result = handler(input['event'], context)
+
+    # Wrap process output into a form where it is easy to extract from the subprocess output
+    sys.stdout.write('[PYTHON_PROCESS_INVOKATION_RESPONSE]')
+    sys.stdout.write(json.dumps(result))
+    sys.stdout.write('[/PYTHON_PROCESS_INVOKATION_RESPONSE]')

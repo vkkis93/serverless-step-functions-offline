@@ -4,8 +4,8 @@ const path = require('path')
 
 class JavascriptRuntime extends BaseRuntime {
    getFunction() {
-      const dir = path.dirname(this.handlerPath);
-      const handler = path.basename(this.handlerPath);
+      const dir = path.dirname(this.functionDefinition.handler);
+      const handler = path.basename(this.functionDefinition.handler);
       const splitHandler = handler.split('.');
       const filePath = `${dir}/${splitHandler[0]}.js`;
       return require(path.join(this.location, filePath))[handler]
@@ -15,7 +15,10 @@ class JavascriptRuntime extends BaseRuntime {
       return {
          f: (event, context, done) => {
             const func = getFunction()
-            process.env = _.extend(process.env, this.environment);
+            if(this.functionDefinition.environment){
+               process.env = _.extend(process.env, this.functionDefinition.environment)
+            }
+            
             return func(event, context, done)
          }
       }

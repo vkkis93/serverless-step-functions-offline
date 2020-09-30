@@ -94,8 +94,11 @@ module.exports = {
             //    f: () => require(path.join(this.location, filePath))[handler]
             //};
             const Runtime = getRuntime(this.serverless.runtime)
-            let runtime = new Runtime(this.location, f.handler, f.environment)
-            return runtime.getExec()
+            let runtime = new Runtime(f, this.serverless, this.location, currentStateName)
+            return {
+                name: currentStateName,
+                f: () => {runtime.getExec}
+            }
         case 'Parallel': // look through branches and push all of them
             this.eventParallelResult = [];
             _.forEach(currentState.Branches, (branch) => {
