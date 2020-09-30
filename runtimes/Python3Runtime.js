@@ -1,16 +1,19 @@
-const BaseRuntime = require('./BaseRuntime')
+'use strict';
+
+const BaseRuntime = require('./BaseRuntime'); // eslint-disable-line no-unused-vars
 const Promise = require('bluebird');
-const path = require('path')
+const path = require('path');
 const { spawn } = require('child_process');
+const os = require('os');
 
 /**
  * Wrapper for running pyhton scripts
  */
 class Pyhthon3Runtime extends BaseRuntime {
     getExec(event, context, done) {
-        let parts = this.functionDefinition.handler.split('.')
-        let handlerPath = parts[0]
-        let handlerName = parts[1]
+        const parts = this.functionDefinition.handler.split('.');
+        const handlerPath = parts[0];
+        const handlerName = parts[1];
         this.invokeLocalPython(
             process.platform === 'win32' ? 'python.exe' : this.serverless.runtime,
             handlerPath,
@@ -18,13 +21,15 @@ class Pyhthon3Runtime extends BaseRuntime {
             event,
             context
         ).then((response) => {
-            done(null, response)
-        })
+            done(null, response);
+        }).catch((error) => {
+            done(error);
+        });
     }
 
     // Retrofitted from local invoke for python
     invokeLocalPython(runtime, handlerPath, handlerName, event, context) {
-        let provider = this.serverless.getProvider('aws');
+        const provider = this.serverless.getProvider('aws');
         const input = JSON.stringify({
             event: event || {},
             context: Object.assign(
@@ -51,8 +56,8 @@ class Pyhthon3Runtime extends BaseRuntime {
         }
 
         return new Promise((resolve, reject) => {
-            let buffer = []
-            let wrapperPath = path.join(__dirname, "/utils/runtime.py")
+            const buffer = [];
+            const wrapperPath = path.join(__dirname, '/utils/runtime.py');
             const python = spawn(
                 runtime.split('.')[0],
                 ['-u', wrapperPath, handlerPath, handlerName],
@@ -61,29 +66,28 @@ class Pyhthon3Runtime extends BaseRuntime {
             );
 
             python.stdout.on('data', buf => {
-                buffer.push(buf.toString())
-                this.serverless.cli.consoleLog(buf.toString())
+                buffer.push(buf.toString());
+                this.serverless.cli.consoleLog(buf.toString().replace(/\[\/?PYTHON_PROCESS_INVOKATION_RESPONSE\]/gm, ''));
             });
 
             python.stderr.on('data', buf => this.serverless.cli.consoleLog(buf.toString()));
 
             python.on('close', () => {
-                const responseRegex = /\[PYTHON_PROCESS_INVOKATION_RESPONSE\](.*)\[\/PYTHON_PROCESS_INVOKATION_RESPONSE\]/gm
-                let bufferedOutput = buffer.join()
+                const responseRegex = /\[PYTHON_PROCESS_INVOKATION_RESPONSE\](.*)\[\/PYTHON_PROCESS_INVOKATION_RESPONSE\]/gm;
+                const bufferedOutput = buffer.join();
 
-                let response = responseRegex.exec(bufferedOutput)
-                
-                if(!response){
-                    return reject(new Error('Failed to parse response from python subprocess'))
+                let response = responseRegex.exec(bufferedOutput);
+
+                if (!response) {
+                    return reject(new Error('Failed to parse response from python subprocess'));
                 }
 
-                try{
-                    response = JSON.parse(response[1])
-                } catch (e){
-                    return reject(e)
+                try {
+                    response = JSON.parse(response[1]);
+                } catch (e) {
+                    return reject(e);
                 }
-                console.log(response)
-                resolve()
+                resolve(response);
             });
 
             let isRejected = false;
@@ -101,4 +105,4 @@ class Pyhthon3Runtime extends BaseRuntime {
     }
 }
 
-module.exports = Pyhthon3Runtime
+module.exports = Pyhthon3Runtime;

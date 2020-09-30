@@ -1,10 +1,9 @@
 'use strict';
-const path = require('path');
 const moment = require('moment');
 const _ = require('lodash');
 const Promise = require('bluebird');
 const enumList = require('./enum');
-const getRuntime = require('./runtimes')
+const getRuntime = require('./runtimes');
 
 module.exports = {
     // findFunctionsPathAndHandler() {
@@ -83,22 +82,13 @@ module.exports = {
                 this.cliLog(`Function "${currentStateName}" does not presented in serverless manifest`);
                 process.exit(1);
             }
-            //HERE
-            //const {handler, filePath} = this._findFunctionPathAndHandler(f.handler);
-            // if function has additional variables - attach it to function
-            //if (f.environment) {
-            //    process.env = _.extend(process.env, f.environment);
-            //}
-            //return {
-            //    name: currentStateName,
-            //    f: () => require(path.join(this.location, filePath))[handler]
-            //};
-            const Runtime = getRuntime(this.serverless.runtime)
-            let runtime = new Runtime(f, this.serverless, this.location, currentStateName)
+
+            const Runtime = getRuntime(this.serverless.runtime);
+            const runtime = new Runtime(f, this.serverless, this.location, currentStateName);
             return {
                 name: currentStateName,
-                f: () => {runtime.getExec}
-            }
+                f: () => {return runtime.getExec.bind(runtime);}
+            };
         case 'Parallel': // look through branches and push all of them
             this.eventParallelResult = [];
             _.forEach(currentState.Branches, (branch) => {
