@@ -1,9 +1,9 @@
 'use strict';
-const path = require('path');
 const moment = require('moment');
 const _ = require('lodash');
 const Promise = require('bluebird');
 const enumList = require('./enum');
+const getRuntime = require('./runtimes');
 
 module.exports = {
     // findFunctionsPathAndHandler() {
@@ -16,15 +16,6 @@ module.exports = {
     //     console.log('this.va', this.variables)
     // },
     //
-    _findFunctionPathAndHandler(functionHandler) {
-        const dir = path.dirname(functionHandler);
-        const handler = path.basename(functionHandler);
-        const splitHandler = handler.split('.');
-        const filePath = `${dir}/${splitHandler[0]}.js`;
-        const handlerName = `${splitHandler[1]}`;
-
-        return {handler: handlerName, filePath};
-    },
 
     buildStepWorkFlow() {
         this.cliLog('Building StepWorkFlow');
@@ -91,14 +82,12 @@ module.exports = {
                 this.cliLog(`Function "${currentStateName}" does not presented in serverless manifest`);
                 process.exit(1);
             }
-            const {handler, filePath} = this._findFunctionPathAndHandler(f.handler);
-            // if function has additional variables - attach it to function
-            if (f.environment) {
-                process.env = _.extend(process.env, f.environment);
-            }
+
+            const Runtime = getRuntime(this.serverless.runtime);
+            const runtime = new Runtime(f, this.serverless, this.location, currentStateName);
             return {
                 name: currentStateName,
-                f: () => require(path.join(this.location, filePath))[handler]
+                f: () => {return runtime.getExec.bind(runtime);}
             };
         case 'Parallel': // look through branches and push all of them
             this.eventParallelResult = [];
