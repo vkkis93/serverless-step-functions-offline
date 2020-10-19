@@ -31,6 +31,11 @@
     "serverless": "^2.0.0",
     "sinon": "^9.2.0"
   },
+  "resolutions": {
+    "**/lodash": "^4.17.19",
+    "**/extend": "^3.0.2",
+    "**/minimist": "^1.2.3"
+  },
   "nyc": {
     "include": [
       "*.js"
