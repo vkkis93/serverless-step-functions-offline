@@ -70,7 +70,7 @@ describe('index.js', () => {
         it('should throw err - unsupportable serverless version', () => {
             const version = '0.5';
             stepFunctionsOfflinePlugin.serverless.version = version;
-            const error = `Serverless step offline requires Serverless v1.x.x but found ${version}`;
+            const error = `Serverless step offline requires Serverless v1.x.x or v2.x.x but found ${version}`;
             expect(stepFunctionsOfflinePlugin.hooks[hooks.start]).to.throw(error);
         });
 
@@ -145,7 +145,7 @@ describe('index.js', () => {
 
         it('should parse serverless.yml and find state', () => {
             stepFunctionsOfflinePlugin.stateMachine = 'foo';
-            stepFunctionsOfflinePlugin.serverless.config.servicePath = process.cwd();
+            stepFunctionsOfflinePlugin.serverless.config.servicePath = process.cwd() + '/tests';;
             return stepFunctionsOfflinePlugin.hooks[hooks.findState]()
                 .then(() => {
                     expect(stepFunctionsOfflinePlugin.stateDefinition).to.have.property('Comment')

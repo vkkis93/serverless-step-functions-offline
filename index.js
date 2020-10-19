@@ -82,8 +82,8 @@ class StepFunctionsOfflinePlugin {
 
     _checkVersion() {
         const version = this.serverless.version;
-        if (!version.startsWith('1.')) {
-            throw new this.serverless.classes.Error(`Serverless step offline requires Serverless v1.x.x but found ${version}`);
+        if (!version.startsWith('1.') && !version.startsWith('2.')) {
+            throw new this.serverless.classes.Error(`Serverless step offline requires Serverless v1.x.x or v2.x.x but found ${version}`);
         }
     }
 
