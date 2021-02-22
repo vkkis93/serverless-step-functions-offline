@@ -76,6 +76,7 @@ module.exports = {
             return;
         }// end of states
         this.executionLog(`~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${this.currentStateName} started ~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
+        this.currentEvent = event;
         f(event, this.contextObject, this.contextObject.done);
 
     },
@@ -163,7 +164,7 @@ module.exports = {
                 f: (event) => {
                     return (arg1, arg2, cb) => {
                         this.cliLog('!!! Pass State !!!');
-                        const eventResult = this._passStateFields(currentState, event);
+                        const eventResult = currentState.Result || event;
                         cb(null, eventResult);
 
                     };
@@ -184,20 +185,6 @@ module.exports = {
             return Promise.resolve('Fail');
         }
         return;
-    },
-
-    _passStateFields(currentState, event) {
-        if (!currentState.ResultPath) {
-            return currentState.Result || event;
-        } else {
-            const variableName = currentState.ResultPath.split('$.')[1];
-            if (!currentState.Result) {
-                event[variableName] = event;
-                return event;
-            }
-            event[variableName] = currentState.Result;
-            return event;
-        }
     },
 
     _runChoice(data, result) {
@@ -276,11 +263,22 @@ module.exports = {
             }
             this.executionLog(`~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${this.currentStateName} finished ~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
             let state = this.states;
+            let configuredResult = result;
+            const supportsResultPath = ['Pass', 'Task', 'Parallel'];
+
+            if (this.currentState.hasOwnProperty('ResultPath') && supportsResultPath.includes(this.currentState.Type)) {
+                const resultPath = this.currentState.ResultPath;
+                configuredResult = this.currentEvent;
+                if (resultPath !== null) {
+                    _.set(configuredResult, resultPath.replace(/\$\./, ''), result);
+                }
+            }
+
             if (this.parallelBranch && this.parallelBranch.States) {
                 state = this.parallelBranch.States;
-                if (!this.currentState.Next) this.eventParallelResult.push(result); //it means the end of execution of branch
+                if (!this.currentState.Next) this.eventParallelResult.push(configuredResult); //it means the end of execution of branch
             }
-            this.process(state[this.currentState.Next], this.currentState.Next, result);
+            this.process(state[this.currentState.Next], this.currentState.Next, configuredResult);
             // return resolve();
             // });
         };
