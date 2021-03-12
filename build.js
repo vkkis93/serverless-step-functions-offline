@@ -27,7 +27,7 @@ module.exports = {
         this.cliLog('Building Iterator StepWorkFlow');
         this.subContextObject = this.createContextObject(stateDefinition.States);
         this.subStates = stateDefinition.States;
-        return this.process(this.subStates[stateDefinition.StartAt], stateDefinition.StartAt, event, this.states);
+        return this.process(this.subStates[stateDefinition.StartAt], stateDefinition.StartAt, event, this.subStates);
     },
 
     async process(state, stateName, event, states) {
