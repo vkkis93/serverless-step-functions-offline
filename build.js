@@ -17,7 +17,8 @@ module.exports = {
     // },
     //
     _findFunctionPathAndHandler(functionHandler) {
-        const dir = path.dirname(functionHandler);
+        const buildDir = this.options.buildDir ? `${this.options.buildDir}/` : '';
+        const dir = `${buildDir}${path.dirname(functionHandler)}`;
         const handler = path.basename(functionHandler);
         const splitHandler = handler.split('.');
         const filePath = `${dir}/${splitHandler[0]}.js`;

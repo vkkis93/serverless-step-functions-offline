@@ -102,11 +102,17 @@ Where:
 
 # Run Plugin
 ```bash
-sls step-functions-offline --stateMachine={{name}} --event={{path to event file}}
+sls step-functions-offline --stateMachine={{name}} --event={{path to event file}} --buildDir={{build-path}}
 ```
 
-- `name`: name of state machine in section state functions. In example above it's `foo`.
+- `stateMachine`: name of state machine in section state functions. In example above it's `foo`.
 - `event`: input values for execution in JSON format (optional)
+- `buildDir`: path to the build directory, eg: .webpack/.build (optional)
+
+In case you have a custom build directory use:
+ ```bash
+sls step-functions-offline --stateMachine={{name}} --event={{path to event file}} --buildDir={{build-path}}
+```
 
 If you want to know where you are (in offline mode or not) you can use env variable `STEP_IS_OFFLINE`.
 
