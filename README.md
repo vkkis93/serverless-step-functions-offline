@@ -67,6 +67,7 @@ plugins:
 
 custom:
   stepFunctionsOffline:
+    # location: .build - Optional if the location of your handler.js is not in ./ (useful for typescript)
     FirstLambda: firstLambda #(v2.0)
     # ...
     # ...
