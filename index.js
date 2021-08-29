@@ -6,9 +6,9 @@ const path = require('path');
 
 class StepFunctionsOfflinePlugin {
     constructor(serverless, options) {
-        this.location = process.cwd();
         this.serverless = serverless;
         this.options = options;
+        this.location = this.options.location || process.cwd();
         this.stateMachine = this.options.stateMachine;
         this.detailedLog = this.options.detailedLog || this.options.l;
         this.eventFile = this.options.event || this.options.e;
