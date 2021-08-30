@@ -35,15 +35,18 @@ class StepFunctionsOfflinePlugin {
                 options: {
                     stateMachine: {
                         usage: 'The stage used to execute.',
-                        required: true
+                        required: true,
+                        type: 'string'
                     },
                     event: {
                         usage: 'File where is values for execution in JSON format',
-                        shortcut: 'e'
+                        shortcut: 'e',
+                        type: 'string'
                     },
                     detailedLog: {
                         usage: 'Option which enables detailed logs',
-                        shortcut: 'l'
+                        shortcut: 'l',
+                        type: 'boolean'
                     }
                 }
             }
