@@ -54,6 +54,7 @@ module.exports = {
         }
 
         this.executionLog(`~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${stateName} started ~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
+        this.currentEvent = event;
         return new Promise((resolve, reject) => {
             this._callF(f, event, resolve, reject, context);
         });
@@ -230,7 +231,7 @@ module.exports = {
                 f: (event) => {
                     return (arg1, arg2, cb) => {
                         this.cliLog('!!! Pass State !!!');
-                        const eventResult = this._passStateFields(currentState, event);
+                        const eventResult = currentState.Result || event;
                         cb(null, eventResult);
 
                     };
@@ -251,20 +252,6 @@ module.exports = {
             return Promise.resolve('Fail');
         }
         return;
-    },
-
-    _passStateFields(currentState, event) {
-        if (!currentState.ResultPath) {
-            return currentState.Result || event;
-        } else {
-            const variableName = currentState.ResultPath.split('$.')[1];
-            if (!currentState.Result) {
-                event[variableName] = event;
-                return event;
-            }
-            event[variableName] = currentState.Result;
-            return event;
-        }
     },
 
     async _runChoice(data, event, states) {
@@ -349,7 +336,18 @@ module.exports = {
                 this.mapResults.push(result);
             }
 
-            return this.process(States[Next], Next, result, States);
+            let configuredResult = result;
+            const supportsResultPath = ['Pass', 'Task', 'Parallel'];
+
+            if (this.currentState.hasOwnProperty('ResultPath') && supportsResultPath.includes(this.currentState.Type)) {
+                const resultPath = this.currentState.ResultPath;
+                configuredResult = this.currentEvent;
+                if (resultPath !== null) {
+                    _.set(configuredResult, resultPath.replace(/\$\./, ''), result);
+                }
+            }
+
+            return this.process(States[Next], Next, configuredResult, States);
         };
 
         return { done: cb };
