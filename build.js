@@ -4,6 +4,7 @@ const moment = require('moment');
 const _ = require('lodash');
 const Promise = require('bluebird');
 const enumList = require('./enum');
+const util = require('util');
 
 module.exports = {
     _findFunctionPathAndHandler(functionHandler) {
@@ -54,7 +55,6 @@ module.exports = {
         }
 
         this.executionLog(`~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${stateName} started ~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
-        this.currentEvent = event;
         return new Promise((resolve, reject) => {
             this._callF(f, event, resolve, reject, context);
         });
@@ -146,7 +146,11 @@ module.exports = {
     
                             delete this.mapResults;
                             this.cliLog('!!! Map Iterator Pass State !!!');
+                            if (currentState.ResultPath === null) {
+                              cb(null, event );
+                            } else {
                             cb(null, this.mapResults );
+                            }
                         }).catch((error) => {
                             cb(error, null);
                         } )
@@ -231,7 +235,7 @@ module.exports = {
                 f: (event) => {
                     return (arg1, arg2, cb) => {
                         this.cliLog('!!! Pass State !!!');
-                        const eventResult = currentState.Result || event;
+                        const eventResult = this._passStateFields(currentState, event);
                         cb(null, eventResult);
 
                     };
@@ -252,6 +256,20 @@ module.exports = {
             return Promise.resolve('Fail');
         }
         return;
+    },
+
+    _passStateFields(currentState, event) {
+        if (!currentState.ResultPath) {
+            return currentState.Result || event;
+        } else {
+            const variableName = currentState.ResultPath.split('$.')[1];
+            if (!currentState.Result) {
+                event[variableName] = event;
+                return event;
+            }
+            event[variableName] = currentState.Result;
+            return event;
+        }
     },
 
     async _runChoice(data, event, states) {
@@ -330,24 +348,14 @@ module.exports = {
             if (err) {
                 throw `Error in function "${this.currentStateName}": ${JSON.stringify(err)}`;
             }
+            this.executionLog(`Finishing state with ${util.inspect(result)}`);
             this.executionLog(`~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${Finished} finished ~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
             
             if (this.mapResults && (this.currentState && !this.currentState.Next)) {
                 this.mapResults.push(result);
             }
 
-            let configuredResult = result;
-            const supportsResultPath = ['Pass', 'Task', 'Parallel'];
-
-            if (this.currentState.hasOwnProperty('ResultPath') && supportsResultPath.includes(this.currentState.Type)) {
-                const resultPath = this.currentState.ResultPath;
-                configuredResult = this.currentEvent;
-                if (resultPath !== null) {
-                    _.set(configuredResult, resultPath.replace(/\$\./, ''), result);
-                }
-            }
-
-            return this.process(States[Next], Next, configuredResult, States);
+            return this.process(States[Next], Next, result, States);
         };
 
         return { done: cb };
