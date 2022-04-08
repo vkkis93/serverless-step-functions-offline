@@ -102,8 +102,16 @@ module.exports = {
                         if (item) {
 
                             const parseValue = value => {
+                                console.log('offline - parseValue - value:', value)
+                                console.log('offline - parseValue - event:', event)
+                                console.log('offline - parseValue - item:', item)
                                 if (value === '$$.Map.Item.Value') {
                                     return item;
+                                }
+
+                                if (value.startsWith('$$.Map.Item.Value')) {
+                                  const subKey = value.replace('$$.Map.Item.Value.', '');
+                                  return item[subKey];
                                 }
 
                                 if (/^\$\./.test(value)) {
@@ -112,9 +120,12 @@ module.exports = {
                             };
 
                             const buildParams = (parameters) => {
+                              console.log('offline - map parameters:', parameters)
                                 return Object.keys(parameters).reduce((acc, key) => {
                                     if (/\.\$$/.test(key)) {
-                                        acc[key.replace(/\.\$$/, '')] = parseValue(parameters[key]);
+                                      acc[key.replace(/\.\$$/, '')] = parseValue(parameters[key]);
+                                    } else {
+                                      acc[key] = parameters[key];
                                     }
                                     return acc;
                                 }, {});
